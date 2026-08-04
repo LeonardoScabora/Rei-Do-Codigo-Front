@@ -1,6 +1,11 @@
 import { useRef, useState } from "react";
 import "./Style.css";
 import { useMatrixRain } from "../Components/MatrixRain";
+import NewGameScreen from "./Components/NewGameScreen";
+import LoadGameScreen from "./Components/LoadGameScreen";
+import OptionsScreen from "./Components/OptionsScreen";
+
+type Screen = "menu" | "new" | "load" | "options";
 
 const MENU_ITEMS = [
   { key: "new", label: "Novo Jogo", icon: "sword" },
@@ -65,13 +70,38 @@ function CrownIcon() {
   );
 }
 
+function MainMenu({ onSelect }: { onSelect: (screen: Screen) => void }) {
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  return (
+    <nav className="rk-panel" aria-label="Menu principal">
+      {MENU_ITEMS.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className={`rk-item${hovered === item.key ? " rk-hovered" : ""}`}
+          onMouseEnter={() => setHovered(item.key)}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => onSelect(item.key as Screen)}
+        >
+          <Icon name={item.icon} />
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function Menu() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [screen, setScreen] = useState<Screen>("menu");
   useMatrixRain(canvasRef);
+
+  const goBack = () => setScreen("menu");
 
   return (
     <div className="rk-root">
+      {/* Background, canvas e vignette ficam FORA da troca de tela — nunca são desmontados */}
       <div className="rk-bg" />
       <canvas ref={canvasRef} className="rk-canvas" />
       <div className="rk-vignette" />
@@ -83,21 +113,18 @@ function Menu() {
           <span className="rk-diamond" />
         </div>
 
-        <nav className="rk-panel" aria-label="Menu principal">
-          {MENU_ITEMS.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`rk-item${hovered === item.key ? " rk-hovered" : ""}`}
-              onMouseEnter={() => setHovered(item.key)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => console.log(`clicked: ${item.key}`)}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
+        {screen === "menu" && <MainMenu onSelect={setScreen} />}
+        {screen === "new" && (
+          <NewGameScreen
+            onBack={goBack}
+            onSelectLanguage={(lang) => {
+              // TODO: iniciar o jogo com a linguagem escolhida
+              console.log("Novo jogo iniciado:", lang);
+            }}
+          />
+        )}
+        {screen === "load" && <LoadGameScreen onBack={goBack} />}
+        {screen === "options" && <OptionsScreen onBack={goBack} />}
       </div>
     </div>
   );
