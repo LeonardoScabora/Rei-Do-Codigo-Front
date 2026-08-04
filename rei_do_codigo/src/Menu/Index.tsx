@@ -72,6 +72,7 @@ function Menu() {
 
   return (
     <div className="rk-root">
+      <div className="rk-bg" />
       <canvas ref={canvasRef} className="rk-canvas" />
       <div className="rk-vignette" />
 
