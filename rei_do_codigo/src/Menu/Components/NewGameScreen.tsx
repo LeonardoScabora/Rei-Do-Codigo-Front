@@ -53,7 +53,12 @@ function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
     <svg {...common}>
       <circle cx="12" cy="12" r="8" stroke={color} strokeWidth="1.5" />
       <path d="M10 9.5c-1.5.6-1.8 4.2 0 5" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M14 10v4M12.4 10v4M12.4 12h1.6M16.4 10v4M18 10v4M16.4 12H18" stroke={color} strokeWidth="1.3" strokeLinecap="square" />
+      <path
+        d="M14 10v4M12.4 10v4M12.4 12h1.6M16.4 10v4M18 10v4M16.4 12H18"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinecap="square"
+      />
     </svg>
   );
 }
@@ -66,17 +71,24 @@ export default function NewGameScreen({
   onSelectLanguage: (lang: LanguageKey) => void;
 }) {
   const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState<LanguageKey | null>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") setIndex((i) => (i + 1) % LANGUAGES.length);
       else if (e.key === "ArrowUp") setIndex((i) => (i - 1 + LANGUAGES.length) % LANGUAGES.length);
-      else if (e.key === "Enter") onSelectLanguage(LANGUAGES[index].key);
-      else if (e.key === "Escape") onBack();
+      else if (e.key === "Enter") {
+        if (selected) confirmSelection();
+        else setSelected(LANGUAGES[index].key);
+      } else if (e.key === "Escape") onBack();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [index, onBack, onSelectLanguage]);
+  }, [index, selected, onBack]);
+
+  function confirmSelection() {
+    if (selected) onSelectLanguage(selected);
+  }
 
   return (
     <>
@@ -89,22 +101,33 @@ export default function NewGameScreen({
           <button
             key={lang.key}
             type="button"
-            className={`rk-item rk-lang-item${index === i ? " rk-hovered" : ""}`}
+            className={`rk-item rk-lang-item${index === i ? " rk-hovered" : ""}${
+              selected === lang.key ? " rk-selected" : ""
+            }`}
             onMouseEnter={() => setIndex(i)}
-            onClick={() => onSelectLanguage(lang.key)}
+            onClick={() => {
+              setIndex(i);
+              setSelected(lang.key);
+            }}
           >
-            {index === i && <span className="rk-arrow">▶</span>}
+            {(index === i || selected === lang.key) && <span className="rk-arrow">▶</span>}
             <LangIcon lang={lang.key} color={lang.color} />
             <span>{lang.label}</span>
           </button>
         ))}
       </div>
 
-      <button type="button" className="rk-back-btn" onClick={onBack}>
-        ‹ Voltar
-      </button>
+      <div className="rk-actions">
+        <button type="button" className="rk-back-btn" onClick={onBack}>
+          ‹ Voltar
+        </button>
 
-      <p className="rk-hint">[ ↑↓ ] PARA NAVEGAR &nbsp; [ENTER] PARA SELECIONAR &nbsp;</p>
+        {selected && (
+          <button type="button" className="rk-back-btn rk-confirm-btn" onClick={confirmSelection}>
+            Confirmar ›
+          </button>
+        )}
+      </div>
     </>
   );
 }

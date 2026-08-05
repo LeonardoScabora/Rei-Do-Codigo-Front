@@ -88,9 +88,11 @@ export default function LoadGameScreen({ onBack }: { onBack: () => void }) {
         )}
       </div>
 
-      <button type="button" className="rk-back-btn" onClick={onBack}>
-        ‹ Voltar
-      </button>
+      <div className="rk-actions">
+        <button type="button" className="rk-back-btn" onClick={onBack}>
+          ‹ Voltar
+        </button>
+      </div>
     </>
   );
 }

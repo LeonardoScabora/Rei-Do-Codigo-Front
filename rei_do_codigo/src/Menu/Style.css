@@ -253,6 +253,15 @@ html, body {
   font-size: 11px;
 }
 
+.rk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 900px; /* ajuste para o mesmo valor usado no .rk-panel */
+  margin: 1px auto 0;
+}
+
 .rk-back-btn {
   margin-top: 18px;
   background: transparent;
@@ -419,6 +428,11 @@ html, body {
   color: #4FCE7C;
   width: 36px;
   text-align: right;
+}
+
+.rk-selected {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: currentColor;
 }
 
 @media (max-width: 520px) {
