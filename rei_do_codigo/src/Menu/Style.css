@@ -32,7 +32,7 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background-image: url("../assets/ImagemFundoMenu.png");
+  background-image: url("../assets/imagemFundoMenu2.png");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -108,7 +108,7 @@ html, body {
   text-shadow:
     0 0 6px rgba(140, 255, 176, 0.9),
     0 0 22px rgba(80, 255, 130, 0.6),
-    0 0 46px rgba(40, 200, 90, 0.4);
+    0 0 46px rgba(40, 200, 90, 0.4) ;
   margin: 6px 0 2px 0;
   text-align: center;
   line-height: 1;
@@ -121,7 +121,7 @@ html, body {
   width: 100%;
   max-width: 420px;
   margin: 14px 0 26px 0;
-  color: #4FCE7C;
+  color: #c5c5c5bd;
   opacity: 0.85;
 }
 
@@ -142,7 +142,7 @@ html, body {
 }
 
 .rk-panel {
-  border: 2px solid #3FBE72;
+  border: 2px solid #c5c5c5bd;
   box-shadow:
     0 0 0 4px rgba(6, 20, 12, 0.9) inset,
     0 0 18px rgba(60, 255, 120, 0.25);
@@ -157,7 +157,7 @@ html, body {
   align-items: center;
   gap: 14px;
   padding: 16px 18px;
-  border: 1.5px solid #2E9C57;
+  border: 1.5px solid #c5c5c5bd;
   background: rgba(10, 30, 17, 0.55);
   margin-bottom: 12px;
   cursor: pointer;
@@ -265,7 +265,7 @@ html, body {
 .rk-back-btn {
   margin-top: 18px;
   background: transparent;
-  border: 1.5px solid #3FBE72;
+  border: 1.5px solid #c5c5c5bd;
   color: #7CFFA0;
   font-family: 'Press Start 2P', monospace;
   font-size: 11px;
