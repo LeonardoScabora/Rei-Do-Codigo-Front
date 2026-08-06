@@ -11,24 +11,39 @@ const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
 function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none" as const };
   if (lang === "java") {
-    return (
-      <svg {...common}>
-        <path
-          d="M8 15c-2 1-2 2.5 1 3.4 3.6 1.1 8.4.4 9.6-1.4"
-          stroke={color}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M10 4c-1.6 1.6-1.4 3 .2 4.4-1.4 1.2-1.4 2.4 0 3.6-1.6 1.2-1.6 2.6 0 4"
-          stroke={color}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        <ellipse cx="12" cy="16.6" rx="6.4" ry="1.6" stroke={color} strokeWidth="1.3" />
-      </svg>
-    );
-  }
+  return (
+    <svg {...common}>
+      {/* Corpo da xícara de café (Java) */}
+      <path
+        d="M6 11h11v3.2c0 2.4-2 4.3-4.4 4.3H10.4C8 18.5 6 16.6 6 14.2V11z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {/* Alça da xícara */}
+      <path
+        d="M17 12.2c1.8-.3 3 .5 3 1.8s-1.3 2.4-3 2.1"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Pires embaixo */}
+      <path
+        d="M5 18.6c0 .6 3.1 1 7 1s7-.4 7-1"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      {/* Vapor saindo da xícara */}
+      <path
+        d="M9.5 8.8c-1-1-.9-2 .1-3M13.5 8.8c-1-1-.9-2 .1-3"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
   if (lang === "python") {
     return (
       <svg {...common}>
@@ -70,25 +85,43 @@ export default function NewGameScreen({
   onBack: () => void;
   onSelectLanguage: (lang: LanguageKey) => void;
 }) {
-  const [index, setIndex] = useState(0);
+  const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selected, setSelected] = useState<LanguageKey | null>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") setIndex((i) => (i + 1) % LANGUAGES.length);
-      else if (e.key === "ArrowUp") setIndex((i) => (i - 1 + LANGUAGES.length) % LANGUAGES.length);
-      else if (e.key === "Enter") {
-        if (selected) confirmSelection();
-        else setSelected(LANGUAGES[index].key);
-      } else if (e.key === "Escape") onBack();
+      if (e.key === "ArrowDown") {
+        setHoverIndex(null);
+        setKeyboardIndex((i) => {
+          const current = i ?? 0;
+          return (current + 1) % LANGUAGES.length;
+        });
+      } else if (e.key === "ArrowUp") {
+        setHoverIndex(null);
+        setKeyboardIndex((i) => {
+          const current = i ?? 0;
+          return (current - 1 + LANGUAGES.length) % LANGUAGES.length;
+        });
+      } else if (e.key === "Enter") {
+        const activeIdx = hoverIndex ?? keyboardIndex;
+        if (selected) {
+          confirmSelection();
+        } else if (activeIdx !== null) {
+          setSelected(LANGUAGES[activeIdx].key);
+        }
+      } else if (e.key === "Escape") {
+        onBack();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [index, selected, onBack]);
+  }, [keyboardIndex, hoverIndex, selected, onBack]);
 
   function confirmSelection() {
     if (selected) onSelectLanguage(selected);
   }
+  const activeIndex = hoverIndex !== null ? hoverIndex : keyboardIndex;
 
   return (
     <>
@@ -96,25 +129,30 @@ export default function NewGameScreen({
         <div className="rk-subtitle">
           <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
         </div>
+        {LANGUAGES.map((lang, i) => {
+          const isActive = activeIndex === i;
+          const isSelected = selected === lang.key;
 
-        {LANGUAGES.map((lang, i) => (
-          <button
-            key={lang.key}
-            type="button"
-            className={`rk-item rk-lang-item${index === i ? " rk-hovered" : ""}${
-              selected === lang.key ? " rk-selected" : ""
-            }`}
-            onMouseEnter={() => setIndex(i)}
-            onClick={() => {
-              setIndex(i);
-              setSelected(lang.key);
-            }}
-          >
-            {(index === i || selected === lang.key) && <span className="rk-arrow">▶</span>}
-            <LangIcon lang={lang.key} color={lang.color} />
-            <span>{lang.label}</span>
-          </button>
-        ))}
+          return (
+            <button
+              key={lang.key}
+              type="button"
+              className={`rk-item rk-lang-item${isActive ? " rk-hovered" : ""}${
+                isSelected ? " rk-selected" : ""
+              }`}
+              onMouseEnter={() => setHoverIndex(i)}
+              onMouseLeave={() => setHoverIndex(null)}
+              onClick={() => {
+                setHoverIndex(i);
+                setSelected(lang.key);
+              }}
+            >
+              {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
+              <LangIcon lang={lang.key} color={lang.color} />
+              <span>{lang.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="rk-actions">
