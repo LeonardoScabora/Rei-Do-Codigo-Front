@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-export type LanguageKey = "java" | "python" | "cpp";
+import type { LanguageKey } from "../language";
 
 const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
   { key: "java", label: "Java", color: "#F58219" },
@@ -11,39 +10,35 @@ const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
 function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none" as const };
   if (lang === "java") {
-  return (
-    <svg {...common}>
-      {/* Corpo da xícara de café (Java) */}
-      <path
-        d="M6 11h11v3.2c0 2.4-2 4.3-4.4 4.3H10.4C8 18.5 6 16.6 6 14.2V11z"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      {/* Alça da xícara */}
-      <path
-        d="M17 12.2c1.8-.3 3 .5 3 1.8s-1.3 2.4-3 2.1"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* Pires embaixo */}
-      <path
-        d="M5 18.6c0 .6 3.1 1 7 1s7-.4 7-1"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      {/* Vapor saindo da xícara */}
-      <path
-        d="M9.5 8.8c-1-1-.9-2 .1-3M13.5 8.8c-1-1-.9-2 .1-3"
-        stroke={color}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+    return (
+      <svg {...common}>
+        <path
+          d="M6 11h11v3.2c0 2.4-2 4.3-4.4 4.3H10.4C8 18.5 6 16.6 6 14.2V11z"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M17 12.2c1.8-.3 3 .5 3 1.8s-1.3 2.4-3 2.1"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M5 18.6c0 .6 3.1 1 7 1s7-.4 7-1"
+          stroke={color}
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M9.5 8.8c-1-1-.9-2 .1-3M13.5 8.8c-1-1-.9-2 .1-3"
+          stroke={color}
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
   if (lang === "python") {
     return (
       <svg {...common}>
@@ -80,17 +75,23 @@ function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
 
 export default function NewGameScreen({
   onBack,
-  onSelectLanguage,
+  onConfirm,
+  submitting = false,
+  error = null,
 }: {
   onBack: () => void;
-  onSelectLanguage: (lang: LanguageKey) => void;
+  onConfirm: (nome: string, lang: LanguageKey) => void;
+  submitting?: boolean;
+  error?: string | null;
 }) {
   const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selected, setSelected] = useState<LanguageKey | null>(null);
+  const [nome, setNome] = useState("");
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
       if (e.key === "ArrowDown") {
         setHoverIndex(null);
         setKeyboardIndex((i) => {
@@ -105,7 +106,7 @@ export default function NewGameScreen({
         });
       } else if (e.key === "Enter") {
         const activeIdx = hoverIndex ?? keyboardIndex;
-        if (selected) {
+        if (selected && nome.trim()) {
           confirmSelection();
         } else if (activeIdx !== null) {
           setSelected(LANGUAGES[activeIdx].key);
@@ -116,12 +117,16 @@ export default function NewGameScreen({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [keyboardIndex, hoverIndex, selected, onBack]);
+  }, [keyboardIndex, hoverIndex, selected, nome, onBack]);
 
   function confirmSelection() {
-    if (selected) onSelectLanguage(selected);
+    if (selected && nome.trim() && !submitting) {
+      onConfirm(nome.trim(), selected);
+    }
   }
+
   const activeIndex = hoverIndex !== null ? hoverIndex : keyboardIndex;
+  const canConfirm = Boolean(selected && nome.trim() && !submitting);
 
   return (
     <>
@@ -129,6 +134,7 @@ export default function NewGameScreen({
         <div className="rk-subtitle">
           <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
         </div>
+
         {LANGUAGES.map((lang, i) => {
           const isActive = activeIndex === i;
           const isSelected = selected === lang.key;
@@ -140,6 +146,7 @@ export default function NewGameScreen({
               className={`rk-item rk-lang-item${isActive ? " rk-hovered" : ""}${
                 isSelected ? " rk-selected" : ""
               }`}
+              disabled={submitting}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
               onClick={() => {
@@ -153,16 +160,37 @@ export default function NewGameScreen({
             </button>
           );
         })}
+
+        {selected && (
+          <div className="rk-name-field rk-name-field-after">
+            <label htmlFor="player-name">Nome do guerreiro</label>
+            <input
+              id="player-name"
+              type="text"
+              maxLength={40}
+              placeholder="Ex: Leo"
+              value={nome}
+              autoFocus
+              onChange={(e) => setNome(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canConfirm) confirmSelection();
+              }}
+              disabled={submitting}
+            />
+          </div>
+        )}
       </div>
 
+      {error && <p className="rk-error">{error}</p>}
+
       <div className="rk-actions">
-        <button type="button" className="rk-back-btn" onClick={onBack}>
+        <button type="button" className="rk-back-btn" onClick={onBack} disabled={submitting}>
           ‹ Voltar
         </button>
 
-        {selected && (
+        {canConfirm && (
           <button type="button" className="rk-back-btn rk-confirm-btn" onClick={confirmSelection}>
-            Confirmar ›
+            {submitting ? "Criando..." : "Confirmar ›"}
           </button>
         )}
       </div>

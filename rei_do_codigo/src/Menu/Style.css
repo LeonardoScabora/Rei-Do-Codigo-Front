@@ -90,6 +90,8 @@ html, body {
   padding: 40px 20px;
   width: 100%;
   max-width: 640px;
+  min-width: 0;
+  box-sizing: border-box;
   color: #7dffb0;
   text-shadow: 0 0 8px rgba(80, 255, 140, 0.6);
 }
@@ -149,6 +151,9 @@ html, body {
   background: linear-gradient(180deg, rgba(6, 18, 11, 0.85), rgba(3, 10, 6, 0.9));
   padding: 22px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   image-rendering: pixelated;
 }
 
@@ -303,6 +308,35 @@ html, body {
   letter-spacing: 0.5px;
 }
 
+.rk-save-list {
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rk-save-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rk-save-list::-webkit-scrollbar-track {
+  background: rgba(10, 30, 17, 0.6);
+}
+
+.rk-save-list::-webkit-scrollbar-thumb {
+  background: #2e9c57;
+  box-shadow: 0 0 6px rgba(80, 255, 140, 0.35);
+}
+
+.rk-save-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .rk-save-item {
   display: flex;
   align-items: center;
@@ -311,23 +345,38 @@ html, body {
   padding: 14px 16px;
   border: 1.5px solid #2E9C57;
   background: rgba(10, 30, 17, 0.55);
-  margin-bottom: 12px;
+  margin-bottom: 0;
+  position: relative;
 }
 
-.rk-save-item:last-child {
-  margin-bottom: 0;
+.rk-save-item-btn {
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.rk-save-item-btn:hover,
+.rk-save-item-btn:focus-visible {
+  background: rgba(60, 255, 120, 0.12);
+  box-shadow: 0 0 14px rgba(80, 255, 140, 0.35);
+  outline: none;
+  transform: translateX(4px);
+}
+
+.rk-save-item.rk-selected {
+  border-color: #6cff9a;
+  background: rgba(60, 255, 120, 0.12);
+  box-shadow: 0 0 14px rgba(80, 255, 140, 0.35);
 }
 
 .rk-save-info {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  cursor: pointer;
   flex: 1;
-}
-
-.rk-save-info:hover .rk-save-lang {
-  color: #C8FFDC;
 }
 
 .rk-save-lang {
@@ -343,21 +392,30 @@ html, body {
   color: #4FCE7C;
 }
 
-.rk-save-delete {
-  background: transparent;
-  border: 1px solid #2E9C57;
-  color: #7CFFA0;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  font-size: 12px;
+.rk-save-arrow {
+  position: static;
+  margin-left: 8px;
   flex-shrink: 0;
 }
 
-.rk-save-delete:hover {
+.rk-save-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 2px;
+}
+
+.rk-save-actions .rk-back-btn {
+  margin-top: 0;
+  flex: 1;
+}
+
+.rk-save-delete-btn:hover,
+.rk-save-delete-btn:focus-visible {
   background: rgba(255, 80, 80, 0.15);
   border-color: #ff6b6b;
   color: #ffb3b3;
+  box-shadow: 0 0 12px rgba(255, 100, 100, 0.35);
 }
 
 /* Options */

@@ -1,9 +1,11 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
+import type { Usuario } from "../api";
+import CrownIcon from "../Components/CrownIcon";
 import "./Style.css";
-import { useMatrixRain } from "../Components/MatrixRain";
 import NewGameScreen from "./Components/NewGameScreen";
 import LoadGameScreen from "./Components/LoadGameScreen";
 import OptionsScreen from "./Components/OptionsScreen";
+import type { LanguageKey } from "./language";
 
 type Screen = "menu" | "new" | "load" | "options";
 
@@ -36,7 +38,6 @@ function Icon({ name }: { name: IconName }) {
         <line x1="3" x2="5" y1="19" y2="21" />
       </svg>
     );
-  
   }
   if (name === "save") {
     return (
@@ -48,27 +49,19 @@ function Icon({ name }: { name: IconName }) {
     );
   }
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings">
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  );
-}
-
-function CrownIcon() {
-  return (
-    <svg width="72" height="52" viewBox="0 0 72 52" fill="none" className="rk-crown">
-      <path
-        d="M6 44 L2 16 L16 28 L24 8 L36 24 L48 8 L56 28 L70 16 L66 44 Z"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinejoin="miter"
-        fill="rgba(80,255,140,0.08)"
-      />
-      <rect x="6" y="44" width="60" height="5" stroke="currentColor" strokeWidth="3" fill="rgba(80,255,140,0.08)" />
-      <circle cx="36" cy="18" r="2.4" fill="currentColor" />
-      <circle cx="20" cy="26" r="1.8" fill="currentColor" />
-      <circle cx="52" cy="26" r="1.8" fill="currentColor" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
@@ -95,41 +88,44 @@ function MainMenu({ onSelect }: { onSelect: (screen: Screen) => void }) {
   );
 }
 
-function Menu() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [screen, setScreen] = useState<Screen>("menu");
-  useMatrixRain(canvasRef);
+type Props = {
+  onConfirmNewGame: (nome: string, lang: LanguageKey) => void;
+  onLoadGame: (usuario: Usuario) => void;
+  creating?: boolean;
+  createError?: string | null;
+};
 
+function Menu({
+  onConfirmNewGame,
+  onLoadGame,
+  creating = false,
+  createError = null,
+}: Props) {
+  const [screen, setScreen] = useState<Screen>("menu");
   const goBack = () => setScreen("menu");
 
   return (
-    <div className="rk-root">
-      {/* Background, canvas e vignette ficam FORA da troca de tela — nunca são desmontados */}
-      <div className="rk-bg" />
-      <canvas ref={canvasRef} className="rk-canvas" />
-      <div className="rk-vignette" />
-
-      <div className="rk-content">
-        <CrownIcon />
-        <h1 className="rk-title">Rei do Código</h1>
-        <div className="rk-divider">
-          <span className="rk-diamond" />
-        </div>
-
-        {screen === "menu" && <MainMenu onSelect={setScreen} />}
-        {screen === "new" && (
-          <NewGameScreen
-            onBack={goBack}
-            onSelectLanguage={(lang) => {
-              // TODO: iniciar o jogo com a linguagem escolhida
-              console.log("Novo jogo iniciado:", lang);
-            }}
-          />
-        )}
-        {screen === "load" && <LoadGameScreen onBack={goBack} />}
-        {screen === "options" && <OptionsScreen onBack={goBack} />}
+    <>
+      <CrownIcon />
+      <h1 className="rk-title">Rei do Código</h1>
+      <div className="rk-divider">
+        <span className="rk-diamond" />
       </div>
-    </div>
+
+      {screen === "menu" && <MainMenu onSelect={setScreen} />}
+      {screen === "new" && (
+        <NewGameScreen
+          onBack={goBack}
+          onConfirm={onConfirmNewGame}
+          submitting={creating}
+          error={createError}
+        />
+      )}
+      {screen === "load" && (
+        <LoadGameScreen onBack={goBack} onLoad={onLoadGame} />
+      )}
+      {screen === "options" && <OptionsScreen onBack={goBack} />}
+    </>
   );
 }
 
