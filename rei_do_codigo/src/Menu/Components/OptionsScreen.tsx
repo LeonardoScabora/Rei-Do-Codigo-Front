@@ -95,9 +95,11 @@ export default function OptionsScreen({ onBack }: { onBack: () => void }) {
         />
       </div>
 
-      <button type="button" className="rk-back-btn" onClick={onBack}>
-        ‹ Voltar
-      </button>
+      <div className="rk-actions">
+        <button type="button" className="rk-back-btn" onClick={onBack}>
+          ‹ Voltar
+        </button>
+      </div>
     </>
   );
 }

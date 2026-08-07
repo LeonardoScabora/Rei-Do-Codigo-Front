@@ -1,0 +1,339 @@
+.rk-content.rk-game {
+  max-width: 920px;
+  width: min(920px, 96vw);
+  max-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-width: 0;
+  box-sizing: border-box;
+  text-shadow: none;
+}
+
+.rk-battle-screen,
+.rk-battle,
+.rk-code-battle,
+.rk-corredor {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.rk-top-actions {
+  margin: 0 0 12px;
+  max-width: 100%;
+}
+
+.rk-top-actions .rk-back-btn {
+  margin-top: 0;
+}
+
+.rk-name-field-after {
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+.rk-corredor-meta {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #4fce7c;
+  text-align: center;
+  margin: 0 0 18px;
+  letter-spacing: 0.5px;
+}
+
+.rk-corredor-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rk-corredor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid #c5c5c5bd;
+  background: rgba(10, 30, 17, 0.55);
+}
+
+.rk-corredor-item strong {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  color: #7cffa0;
+  margin-bottom: 4px;
+}
+
+.rk-corredor-item p {
+  margin: 4px 0 0;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  color: #9ad4ad;
+}
+
+.rk-corredor-tipo {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #4fce7c;
+  margin-top: 4px;
+}
+
+.rk-corredor-item.rk-atual {
+  border-color: #6cff9a;
+  box-shadow: 0 0 14px rgba(80, 255, 140, 0.35);
+}
+
+.rk-corredor-item.rk-passado {
+  opacity: 0.55;
+}
+
+.rk-corredor-item.rk-bloqueado {
+  opacity: 0.4;
+}
+
+.rk-badge {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #4fce7c;
+  white-space: nowrap;
+}
+
+.rk-battle-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.rk-battle-title {
+  font-family: "IM Fell English SC", serif;
+  font-size: clamp(28px, 5vw, 42px);
+  color: #8cffb0;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(80, 255, 130, 0.55);
+}
+
+.rk-battle-sub {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #4fce7c;
+  margin: 8px 0 14px;
+}
+
+.rk-battle-hp {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rk-vidas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.rk-vidas-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #c8ffdc;
+}
+
+.rk-vidas-hearts {
+  display: flex;
+  gap: 4px;
+  font-size: 18px;
+}
+
+.rk-heart-on {
+  color: #ff6b6b;
+  text-shadow: 0 0 8px rgba(255, 80, 80, 0.6);
+}
+
+.rk-heart-off {
+  color: #2a4030;
+}
+
+.rk-vidas-inimigo .rk-heart-on {
+  color: #6cff9a;
+  text-shadow: 0 0 8px rgba(80, 255, 140, 0.55);
+}
+
+.rk-quiz-panel,
+.rk-desafio-info,
+.rk-terminal-out,
+.rk-resultado {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.rk-quiz-enunciado {
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+  color: #c8ffdc;
+  margin: 0 0 16px;
+  line-height: 1.45;
+}
+
+.rk-quiz-ordem {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #4fce7c;
+  margin-bottom: 8px;
+}
+
+.rk-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rk-quiz-option {
+  margin-bottom: 0;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.rk-quiz-option:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.rk-quiz-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #6cff9a;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.rk-error {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #ff8a8a;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.rk-feedback {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #c8ffdc;
+  text-align: center;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.rk-feedback.rk-ok {
+  color: #6cff9a;
+}
+
+.rk-io-examples {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rk-io-examples strong {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #4fce7c;
+}
+
+.rk-io-examples pre,
+.rk-terminal-out pre {
+  margin: 6px 0 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #2e9c57;
+  color: #9ad4ad;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rk-stderr {
+  color: #ff8a8a !important;
+}
+
+.rk-editor-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 320px;
+  margin-top: 12px;
+  border: 1.5px solid #c5c5c5bd;
+  box-shadow: 0 0 14px rgba(60, 255, 120, 0.2);
+  overflow: hidden;
+  box-sizing: border-box;
+  contain: inline-size;
+}
+
+.rk-editor-wrap .monaco-editor,
+.rk-editor-wrap .overflow-guard {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.rk-code-actions {
+  justify-content: flex-end;
+}
+
+.rk-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rk-name-field {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.rk-name-field label {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #4fce7c;
+  margin-bottom: 8px;
+}
+
+.rk-name-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(10, 30, 17, 0.7);
+  border: 1.5px solid #c5c5c5bd;
+  color: #c8ffdc;
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.rk-name-field input:focus {
+  border-color: #6cff9a;
+  box-shadow: 0 0 12px rgba(80, 255, 140, 0.35);
+}
+
+@media (max-width: 640px) {
+  .rk-io-examples {
+    grid-template-columns: 1fr;
+  }
+
+  .rk-corredor-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

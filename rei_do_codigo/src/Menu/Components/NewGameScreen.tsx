@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-export type LanguageKey = "java" | "python" | "cpp";
+import type { LanguageKey } from "../language";
 
 const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
   { key: "java", label: "Java", color: "#F58219" },
@@ -14,18 +13,29 @@ function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
     return (
       <svg {...common}>
         <path
-          d="M8 15c-2 1-2 2.5 1 3.4 3.6 1.1 8.4.4 9.6-1.4"
+          d="M6 11h11v3.2c0 2.4-2 4.3-4.4 4.3H10.4C8 18.5 6 16.6 6 14.2V11z"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M17 12.2c1.8-.3 3 .5 3 1.8s-1.3 2.4-3 2.1"
           stroke={color}
           strokeWidth="1.5"
           strokeLinecap="round"
         />
         <path
-          d="M10 4c-1.6 1.6-1.4 3 .2 4.4-1.4 1.2-1.4 2.4 0 3.6-1.6 1.2-1.6 2.6 0 4"
+          d="M5 18.6c0 .6 3.1 1 7 1s7-.4 7-1"
           stroke={color}
-          strokeWidth="1.5"
+          strokeWidth="1.3"
           strokeLinecap="round"
         />
-        <ellipse cx="12" cy="16.6" rx="6.4" ry="1.6" stroke={color} strokeWidth="1.3" />
+        <path
+          d="M9.5 8.8c-1-1-.9-2 .1-3M13.5 8.8c-1-1-.9-2 .1-3"
+          stroke={color}
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
       </svg>
     );
   }
@@ -53,30 +63,70 @@ function LangIcon({ lang, color }: { lang: LanguageKey; color: string }) {
     <svg {...common}>
       <circle cx="12" cy="12" r="8" stroke={color} strokeWidth="1.5" />
       <path d="M10 9.5c-1.5.6-1.8 4.2 0 5" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M14 10v4M12.4 10v4M12.4 12h1.6M16.4 10v4M18 10v4M16.4 12H18" stroke={color} strokeWidth="1.3" strokeLinecap="square" />
+      <path
+        d="M14 10v4M12.4 10v4M12.4 12h1.6M16.4 10v4M18 10v4M16.4 12H18"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinecap="square"
+      />
     </svg>
   );
 }
 
 export default function NewGameScreen({
   onBack,
-  onSelectLanguage,
+  onConfirm,
+  submitting = false,
+  error = null,
 }: {
   onBack: () => void;
-  onSelectLanguage: (lang: LanguageKey) => void;
+  onConfirm: (nome: string, lang: LanguageKey) => void;
+  submitting?: boolean;
+  error?: string | null;
 }) {
-  const [index, setIndex] = useState(0);
+  const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [selected, setSelected] = useState<LanguageKey | null>(null);
+  const [nome, setNome] = useState("");
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") setIndex((i) => (i + 1) % LANGUAGES.length);
-      else if (e.key === "ArrowUp") setIndex((i) => (i - 1 + LANGUAGES.length) % LANGUAGES.length);
-      else if (e.key === "Enter") onSelectLanguage(LANGUAGES[index].key);
-      else if (e.key === "Escape") onBack();
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key === "ArrowDown") {
+        setHoverIndex(null);
+        setKeyboardIndex((i) => {
+          const current = i ?? 0;
+          return (current + 1) % LANGUAGES.length;
+        });
+      } else if (e.key === "ArrowUp") {
+        setHoverIndex(null);
+        setKeyboardIndex((i) => {
+          const current = i ?? 0;
+          return (current - 1 + LANGUAGES.length) % LANGUAGES.length;
+        });
+      } else if (e.key === "Enter") {
+        const activeIdx = hoverIndex ?? keyboardIndex;
+        if (selected && nome.trim()) {
+          confirmSelection();
+        } else if (activeIdx !== null) {
+          setSelected(LANGUAGES[activeIdx].key);
+        }
+      } else if (e.key === "Escape") {
+        onBack();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [index, onBack, onSelectLanguage]);
+  }, [keyboardIndex, hoverIndex, selected, nome, onBack]);
+
+  function confirmSelection() {
+    if (selected && nome.trim() && !submitting) {
+      onConfirm(nome.trim(), selected);
+    }
+  }
+
+  const activeIndex = hoverIndex !== null ? hoverIndex : keyboardIndex;
+  const canConfirm = Boolean(selected && nome.trim() && !submitting);
 
   return (
     <>
@@ -85,26 +135,65 @@ export default function NewGameScreen({
           <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
         </div>
 
-        {LANGUAGES.map((lang, i) => (
-          <button
-            key={lang.key}
-            type="button"
-            className={`rk-item rk-lang-item${index === i ? " rk-hovered" : ""}`}
-            onMouseEnter={() => setIndex(i)}
-            onClick={() => onSelectLanguage(lang.key)}
-          >
-            {index === i && <span className="rk-arrow">▶</span>}
-            <LangIcon lang={lang.key} color={lang.color} />
-            <span>{lang.label}</span>
-          </button>
-        ))}
+        {LANGUAGES.map((lang, i) => {
+          const isActive = activeIndex === i;
+          const isSelected = selected === lang.key;
+
+          return (
+            <button
+              key={lang.key}
+              type="button"
+              className={`rk-item rk-lang-item${isActive ? " rk-hovered" : ""}${
+                isSelected ? " rk-selected" : ""
+              }`}
+              disabled={submitting}
+              onMouseEnter={() => setHoverIndex(i)}
+              onMouseLeave={() => setHoverIndex(null)}
+              onClick={() => {
+                setHoverIndex(i);
+                setSelected(lang.key);
+              }}
+            >
+              {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
+              <LangIcon lang={lang.key} color={lang.color} />
+              <span>{lang.label}</span>
+            </button>
+          );
+        })}
+
+        {selected && (
+          <div className="rk-name-field rk-name-field-after">
+            <label htmlFor="player-name">Nome do guerreiro</label>
+            <input
+              id="player-name"
+              type="text"
+              maxLength={40}
+              placeholder="Ex: Leo"
+              value={nome}
+              autoFocus
+              onChange={(e) => setNome(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canConfirm) confirmSelection();
+              }}
+              disabled={submitting}
+            />
+          </div>
+        )}
       </div>
 
-      <button type="button" className="rk-back-btn" onClick={onBack}>
-        ‹ Voltar
-      </button>
+      {error && <p className="rk-error">{error}</p>}
 
-      <p className="rk-hint">[ ↑↓ ] PARA NAVEGAR &nbsp; [ENTER] PARA SELECIONAR &nbsp;</p>
+      <div className="rk-actions">
+        <button type="button" className="rk-back-btn" onClick={onBack} disabled={submitting}>
+          ‹ Voltar
+        </button>
+
+        {canConfirm && (
+          <button type="button" className="rk-back-btn rk-confirm-btn" onClick={confirmSelection}>
+            {submitting ? "Criando..." : "Confirmar ›"}
+          </button>
+        )}
+      </div>
     </>
   );
 }

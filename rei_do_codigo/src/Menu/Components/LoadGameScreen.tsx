@@ -1,61 +1,73 @@
 import { useEffect, useState } from "react";
+import { excluirUsuario, listarUsuarios, type Usuario } from "../../api";
 
-interface SaveSlot {
-  id: string;
-  language: string;
-  level: number;
-  updatedAt: string;
+type Props = {
+  onBack: () => void;
+  onLoad: (usuario: Usuario) => void;
+};
+
+function labelLinguagem(lang: string) {
+  if (lang === "JAVA") return "Java";
+  if (lang === "PYTHON") return "Python";
+  if (lang === "CPP") return "C++";
+  return lang;
 }
 
-const SAVES_KEY = "rk_saves";
-
-function readSaves(): SaveSlot[] {
-  try {
-    const raw = localStorage.getItem(SAVES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+function textoProgresso(usuario: Usuario) {
+  if (usuario.venceuRei) return "Venceu o Rei do Código";
+  return `Corredor · sala ${usuario.progresso}`;
 }
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
-
-export default function LoadGameScreen({ onBack }: { onBack: () => void }) {
-  const [saves, setSaves] = useState<SaveSlot[]>([]);
+export default function LoadGameScreen({ onBack, onLoad }: Props) {
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [selecionadoId, setSelecionadoId] = useState<number | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    setSaves(readSaves());
+    let ativo = true;
+    (async () => {
+      setCarregando(true);
+      setErro(null);
+      try {
+        const lista = await listarUsuarios();
+        if (ativo) setUsuarios(lista);
+      } catch (e) {
+        if (ativo) {
+          setErro(e instanceof Error ? e.message : "Falha ao carregar saves.");
+        }
+      } finally {
+        if (ativo) setCarregando(false);
+      }
+    })();
+
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onBack();
     };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    return () => {
+      ativo = false;
+      window.removeEventListener("keydown", handler);
+    };
   }, [onBack]);
 
-  const handleLoad = (slot: SaveSlot) => {
-    // TODO: carregar o estado real do jogo a partir do slot
-    console.log("Carregando save:", slot);
-  };
+  const selecionado = usuarios.find((u) => u.id === selecionadoId) ?? null;
 
-  const handleDelete = (id: string) => {
-    const next = saves.filter((s) => s.id !== id);
-    setSaves(next);
-    localStorage.setItem(SAVES_KEY, JSON.stringify(next));
-  };
+  async function handleExcluir() {
+    if (!selecionado || excluindo) return;
+    setExcluindo(true);
+    setErro(null);
+    try {
+      await excluirUsuario(selecionado.id);
+      setUsuarios((lista) => lista.filter((u) => u.id !== selecionado.id));
+      setSelecionadoId(null);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao excluir save.");
+    } finally {
+      setExcluindo(false);
+    }
+  }
 
   return (
     <>
@@ -64,33 +76,67 @@ export default function LoadGameScreen({ onBack }: { onBack: () => void }) {
           <span className="rk-diamond-sm" /> Carregar Jogo <span className="rk-diamond-sm" />
         </div>
 
-        {saves.length === 0 ? (
-          <p className="rk-save-empty">Nenhum jogo salvo encontrado.</p>
-        ) : (
-          saves.map((slot) => (
-            <div key={slot.id} className="rk-save-item">
-              <div className="rk-save-info" onClick={() => handleLoad(slot)}>
-                <span className="rk-save-lang">{slot.language}</span>
-                <span className="rk-save-meta">
-                  Nível {slot.level} · {formatDate(slot.updatedAt)}
-                </span>
-              </div>
-              <button
-                type="button"
-                className="rk-save-delete"
-                aria-label="Excluir save"
-                onClick={() => handleDelete(slot.id)}
-              >
-                ✕
-              </button>
-            </div>
-          ))
+        {carregando && <p className="rk-save-empty">Buscando progressos...</p>}
+        {erro && <p className="rk-error">{erro}</p>}
+
+        {!carregando && !erro && usuarios.length === 0 && (
+          <p className="rk-save-empty">Nenhum progresso salvo no banco.</p>
+        )}
+
+        {!carregando && usuarios.length > 0 && (
+          <div className="rk-save-list">
+            {usuarios.map((usuario) => {
+              const ativo = selecionadoId === usuario.id;
+              return (
+                <div key={usuario.id} className="rk-save-block">
+                  <button
+                    type="button"
+                    className={`rk-save-item rk-save-item-btn${ativo ? " rk-selected" : ""}`}
+                    onClick={() =>
+                      setSelecionadoId((id) => (id === usuario.id ? null : usuario.id))
+                    }
+                  >
+                    <div className="rk-save-info">
+                      <span className="rk-save-lang">
+                        {usuario.nome} · {labelLinguagem(usuario.linguagem)}
+                      </span>
+                      <span className="rk-save-meta">{textoProgresso(usuario)}</span>
+                    </div>
+                    {ativo && <span className="rk-arrow rk-save-arrow">▶</span>}
+                  </button>
+
+                  {ativo && (
+                    <div className="rk-save-actions">
+                      <button
+                        type="button"
+                        className="rk-back-btn rk-save-delete-btn"
+                        disabled={excluindo}
+                        onClick={() => void handleExcluir()}
+                      >
+                        {excluindo ? "Excluindo..." : "Excluir"}
+                      </button>
+                      <button
+                        type="button"
+                        className="rk-back-btn rk-confirm-btn"
+                        disabled={excluindo}
+                        onClick={() => onLoad(usuario)}
+                      >
+                        Continuar ›
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      <button type="button" className="rk-back-btn" onClick={onBack}>
-        ‹ Voltar
-      </button>
+      <div className="rk-actions">
+        <button type="button" className="rk-back-btn" onClick={onBack}>
+          ‹ Voltar
+        </button>
+      </div>
     </>
   );
 }
