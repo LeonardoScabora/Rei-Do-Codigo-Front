@@ -239,6 +239,25 @@
   color: #6cff9a;
 }
 
+.rk-feedback.rk-bad {
+  color: #ff8a8a;
+}
+
+.rk-quiz-option--ok {
+  border-color: #6cff9a !important;
+  box-shadow: 0 0 10px rgba(80, 255, 140, 0.35);
+}
+
+.rk-quiz-option--bad {
+  border-color: #ff8a8a !important;
+  box-shadow: 0 0 10px rgba(255, 100, 100, 0.3);
+}
+
+.rk-quiz-advance {
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
 .rk-io-examples {
   display: grid;
   grid-template-columns: 1fr 1fr;

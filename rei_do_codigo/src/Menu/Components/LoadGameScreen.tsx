@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { excluirUsuario, listarUsuarios, type Usuario } from "../../api";
+import { labelNivel } from "../difficulty";
 
 type Props = {
   onBack: () => void;
@@ -98,7 +99,8 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
                   >
                     <div className="rk-save-info">
                       <span className="rk-save-lang">
-                        {usuario.nome} · {labelLinguagem(usuario.linguagem)}
+                        {usuario.nome} · {labelLinguagem(usuario.linguagem)} ·{" "}
+                        {labelNivel(usuario.nivel)}
                       </span>
                       <span className="rk-save-meta">{textoProgresso(usuario)}</span>
                     </div>

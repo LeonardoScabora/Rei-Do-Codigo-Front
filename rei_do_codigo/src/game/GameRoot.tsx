@@ -8,6 +8,7 @@ import {
   type ResultadoAcao,
   type Usuario,
 } from "../api";
+import { labelNivel } from "../Menu/difficulty";
 import CodeBattle from "./CodeBattle";
 import CorridorScene, { type CorridorMode } from "./CorridorScene";
 import DialogueBox from "./DialogueBox";
@@ -202,7 +203,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
           ‹ Menu
         </button>
         <span className="rk-game-toolbar__meta">
-          {usuario.nome} · {usuario.linguagem} · sala {usuario.progresso}
+          {usuario.nome} · {usuario.linguagem} · {labelNivel(usuario.nivel)} · sala{" "}
+          {usuario.progresso}
         </span>
       </div>
 

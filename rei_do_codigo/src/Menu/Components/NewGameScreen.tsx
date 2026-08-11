@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DIFFICULTIES, type DifficultyKey } from "../difficulty";
 import type { LanguageKey } from "../language";
 
 const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
@@ -80,13 +81,15 @@ export default function NewGameScreen({
   error = null,
 }: {
   onBack: () => void;
-  onConfirm: (nome: string, lang: LanguageKey) => void;
+  onConfirm: (nome: string, lang: LanguageKey, difficulty: DifficultyKey) => void;
   submitting?: boolean;
   error?: string | null;
 }) {
   const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selected, setSelected] = useState<LanguageKey | null>(null);
+  const [difficulty, setDifficulty] = useState<DifficultyKey | null>(null);
+  const [diffHover, setDiffHover] = useState<number | null>(null);
   const [nome, setNome] = useState("");
 
   useEffect(() => {
@@ -106,9 +109,9 @@ export default function NewGameScreen({
         });
       } else if (e.key === "Enter") {
         const activeIdx = hoverIndex ?? keyboardIndex;
-        if (selected && nome.trim()) {
+        if (selected && difficulty && nome.trim()) {
           confirmSelection();
-        } else if (activeIdx !== null) {
+        } else if (!selected && activeIdx !== null) {
           setSelected(LANGUAGES[activeIdx].key);
         }
       } else if (e.key === "Escape") {
@@ -117,16 +120,16 @@ export default function NewGameScreen({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [keyboardIndex, hoverIndex, selected, nome, onBack]);
+  }, [keyboardIndex, hoverIndex, selected, difficulty, nome, onBack]);
 
   function confirmSelection() {
-    if (selected && nome.trim() && !submitting) {
-      onConfirm(nome.trim(), selected);
+    if (selected && difficulty && nome.trim() && !submitting) {
+      onConfirm(nome.trim(), selected, difficulty);
     }
   }
 
   const activeIndex = hoverIndex !== null ? hoverIndex : keyboardIndex;
-  const canConfirm = Boolean(selected && nome.trim() && !submitting);
+  const canConfirm = Boolean(selected && difficulty && nome.trim() && !submitting);
 
   return (
     <>
@@ -152,6 +155,8 @@ export default function NewGameScreen({
               onClick={() => {
                 setHoverIndex(i);
                 setSelected(lang.key);
+                setDifficulty(null);
+                setNome("");
               }}
             >
               {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
@@ -162,6 +167,39 @@ export default function NewGameScreen({
         })}
 
         {selected && (
+          <div className="rk-difficulty-block">
+            <div className="rk-subtitle rk-subtitle-nested">
+              <span className="rk-diamond-sm" /> Seu nível <span className="rk-diamond-sm" />
+            </div>
+            <div className="rk-difficulty-list">
+              {DIFFICULTIES.map((diff, i) => {
+                const isActive = diffHover === i;
+                const isSelected = difficulty === diff.key;
+                return (
+                  <button
+                    key={diff.key}
+                    type="button"
+                    className={`rk-item rk-diff-item${isActive ? " rk-hovered" : ""}${
+                      isSelected ? " rk-selected" : ""
+                    }`}
+                    disabled={submitting}
+                    onMouseEnter={() => setDiffHover(i)}
+                    onMouseLeave={() => setDiffHover(null)}
+                    onClick={() => setDifficulty(diff.key)}
+                  >
+                    {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
+                    <span className="rk-diff-text">
+                      <span>{diff.label}</span>
+                      <small>{diff.hint}</small>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {selected && difficulty && (
           <div className="rk-name-field rk-name-field-after">
             <label htmlFor="player-name">Nome do guerreiro</label>
             <input

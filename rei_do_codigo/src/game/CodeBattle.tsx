@@ -36,12 +36,17 @@ export default function CodeBattle({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
+  const [resultadoPendente, setResultadoPendente] = useState<ResultadoAcao | null>(null);
 
   useEffect(() => {
     let ativo = true;
     (async () => {
       setCarregando(true);
       setErro(null);
+      setFeedback(null);
+      setStdout("");
+      setStderr("");
+      setResultadoPendente(null);
       try {
         const d = await obterDesafio(batalha.id);
         if (!ativo) return;
@@ -61,7 +66,15 @@ export default function CodeBattle({
   }, [batalha.id]);
 
   async function enviar() {
-    if (enviando || disabled || batalha.status !== "EM_ANDAMENTO" || !codigo.trim()) return;
+    if (
+      enviando ||
+      disabled ||
+      resultadoPendente ||
+      batalha.status !== "EM_ANDAMENTO" ||
+      !codigo.trim()
+    ) {
+      return;
+    }
     setEnviando(true);
     setErro(null);
     setFeedback(null);
@@ -72,14 +85,20 @@ export default function CodeBattle({
       setFeedback(resultado.mensagem);
       setStdout(resultado.stdout ?? "");
       setStderr(resultado.stderr ?? "");
-      onAtualizarBatalha(
-        {
-          vidaJogador: resultado.vidaJogador,
-          vidaInimigo: resultado.vidaInimigo,
-          status: resultado.status,
-        },
-        resultado,
-      );
+
+      if (resultado.acertou) {
+        // Mantém o painel aberto para o jogador ver o que passou nos testes.
+        setResultadoPendente(resultado);
+      } else {
+        onAtualizarBatalha(
+          {
+            vidaJogador: resultado.vidaJogador,
+            vidaInimigo: resultado.vidaInimigo,
+            status: resultado.status,
+          },
+          resultado,
+        );
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao submeter código.");
     } finally {
@@ -87,12 +106,28 @@ export default function CodeBattle({
     }
   }
 
+  function avancarAposAcerto() {
+    if (!resultadoPendente) return;
+    const resultado = resultadoPendente;
+    setResultadoPendente(null);
+    onAtualizarBatalha(
+      {
+        vidaJogador: resultado.vidaJogador,
+        vidaInimigo: resultado.vidaInimigo,
+        status: resultado.status,
+      },
+      resultado,
+    );
+  }
+
   return (
     <div className="rk-side-panel rk-side-panel--code">
       <p className="rk-side-panel__title">Terminal · {linguagem}</p>
       {carregando && <p className="rk-hint">Carregando desafio...</p>}
       {erro && <p className="rk-error">{erro}</p>}
-      {feedback && <p className="rk-feedback">{feedback}</p>}
+      {feedback && (
+        <p className={`rk-feedback${resultadoPendente ? " rk-ok" : ""}`}>{feedback}</p>
+      )}
 
       {desafio && (
         <>
@@ -125,19 +160,30 @@ export default function CodeBattle({
                 automaticLayout: true,
                 wordWrap: "on",
                 fixedOverflowWidgets: true,
+                readOnly: Boolean(resultadoPendente) || disabled,
               }}
             />
           </div>
 
           <div className="rk-actions rk-code-actions">
-            <button
-              type="button"
-              className="rk-back-btn rk-confirm-btn"
-              disabled={enviando || disabled || batalha.status !== "EM_ANDAMENTO"}
-              onClick={() => void enviar()}
-            >
-              {enviando ? "Executando..." : "Submeter ›"}
-            </button>
+            {resultadoPendente ? (
+              <button
+                type="button"
+                className="rk-back-btn rk-confirm-btn"
+                onClick={avancarAposAcerto}
+              >
+                Avançar ›
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="rk-back-btn rk-confirm-btn"
+                disabled={enviando || disabled || batalha.status !== "EM_ANDAMENTO"}
+                onClick={() => void enviar()}
+              >
+                {enviando ? "Executando..." : "Submeter ›"}
+              </button>
+            )}
           </div>
 
           {(stdout || stderr) && (

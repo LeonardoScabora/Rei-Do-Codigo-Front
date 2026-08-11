@@ -4,6 +4,7 @@ import { useMatrixRain } from "./Components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
 import GameRoot from "./game/GameRoot";
 import "./game/Style.css";
+import { toApiNivel, type DifficultyKey } from "./Menu/difficulty";
 import Menu from "./Menu/Index";
 import { toApiLinguagem, type LanguageKey } from "./Menu/language";
 import "./Menu/Style.css";
@@ -29,11 +30,11 @@ export default function App() {
     setCrownActive(true);
   }
 
-  async function handleNovoJogo(nome: string, lang: LanguageKey) {
+  async function handleNovoJogo(nome: string, lang: LanguageKey, difficulty: DifficultyKey) {
     setCreating(true);
     setCreateError(null);
     try {
-      const u = await criarUsuario(nome, toApiLinguagem(lang));
+      const u = await criarUsuario(nome, toApiLinguagem(lang), toApiNivel(difficulty));
       entrarNoJogo(u);
     } catch (e) {
       setCreateError(e instanceof Error ? e.message : "Não foi possível criar o usuário.");

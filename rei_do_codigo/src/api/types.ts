@@ -1,4 +1,5 @@
 export type Linguagem = "JAVA" | "PYTHON" | "CPP";
+export type NivelDificuldade = "INICIANTE" | "INTERMEDIARIO" | "AVANCADO";
 export type TipoInimigo = "MULTIPLA_ESCOLHA" | "CODIGO";
 export type StatusBatalha = "EM_ANDAMENTO" | "VITORIA" | "DERROTA";
 
@@ -6,6 +7,7 @@ export interface Usuario {
   id: number;
   nome: string;
   linguagem: Linguagem;
+  nivel: NivelDificuldade;
   progresso: number;
   venceuRei: boolean;
 }

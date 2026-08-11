@@ -5,6 +5,7 @@ import "./Style.css";
 import NewGameScreen from "./Components/NewGameScreen";
 import LoadGameScreen from "./Components/LoadGameScreen";
 import OptionsScreen from "./Components/OptionsScreen";
+import type { DifficultyKey } from "./difficulty";
 import type { LanguageKey } from "./language";
 
 type Screen = "menu" | "new" | "load" | "options";
@@ -89,7 +90,7 @@ function MainMenu({ onSelect }: { onSelect: (screen: Screen) => void }) {
 }
 
 type Props = {
-  onConfirmNewGame: (nome: string, lang: LanguageKey) => void;
+  onConfirmNewGame: (nome: string, lang: LanguageKey, difficulty: DifficultyKey) => void;
   onLoadGame: (usuario: Usuario) => void;
   creating?: boolean;
   createError?: string | null;

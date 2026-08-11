@@ -5,6 +5,7 @@ import type {
   DesafioCodigo,
   Inimigo,
   Linguagem,
+  NivelDificuldade,
   Pergunta,
   ResultadoAcao,
   Usuario,
@@ -13,10 +14,10 @@ import type {
 export * from "./types";
 export { ApiError } from "./client";
 
-export function criarUsuario(nome: string, linguagem: Linguagem) {
+export function criarUsuario(nome: string, linguagem: Linguagem, nivel: NivelDificuldade) {
   return apiFetch<Usuario>("/api/usuarios", {
     method: "POST",
-    body: JSON.stringify({ nome, linguagem }),
+    body: JSON.stringify({ nome, linguagem, nivel }),
   });
 }
 

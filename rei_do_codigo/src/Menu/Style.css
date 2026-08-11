@@ -251,6 +251,45 @@ html, body {
   position: relative;
 }
 
+.rk-difficulty-block {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.rk-subtitle-nested {
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.rk-difficulty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rk-diff-item {
+  justify-content: flex-start;
+  position: relative;
+  align-items: flex-start;
+  min-height: 52px;
+}
+
+.rk-diff-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.rk-diff-text small {
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #7ab890;
+  text-transform: none;
+}
+
 .rk-arrow {
   position: absolute;
   left: -18px;
