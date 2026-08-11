@@ -251,6 +251,32 @@ html, body {
   position: relative;
 }
 
+/* Novo Jogo: painel com rolagem para os botões de ação ficarem sempre visíveis */
+.rk-newgame-panel {
+  max-height: max(260px, calc(100vh - 380px));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.rk-newgame-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rk-newgame-panel::-webkit-scrollbar-track {
+  background: rgba(10, 30, 17, 0.6);
+}
+
+.rk-newgame-panel::-webkit-scrollbar-thumb {
+  background: #2e9c57;
+  box-shadow: 0 0 6px rgba(80, 255, 140, 0.35);
+}
+
+/* Nome do guerreiro reaproveitado de um save vencido */
+.rk-name-fixed {
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+
 .rk-difficulty-block {
   width: 100%;
   margin-top: 18px;

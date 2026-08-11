@@ -41,6 +41,7 @@ export default function QuizBattle({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [acertouUltima, setAcertouUltima] = useState(false);
   const [escolhida, setEscolhida] = useState<Alternativa | null>(null);
+  const [correta, setCorreta] = useState<Alternativa | null>(null);
   const [aguardandoAvancar, setAguardandoAvancar] = useState(false);
   const [rodada, setRodada] = useState(0);
 
@@ -51,6 +52,7 @@ export default function QuizBattle({
     setFeedback(null);
     setAcertouUltima(false);
     setEscolhida(null);
+    setCorreta(null);
     setAguardandoAvancar(false);
     try {
       const p = await proximaPergunta(batalha.id);
@@ -83,6 +85,7 @@ export default function QuizBattle({
       setFeedback(resultado.mensagem);
       setAcertouUltima(resultado.acertou);
       setEscolhida(alternativa);
+      setCorreta(resultado.alternativaCorreta ?? null);
       onAtualizarBatalha(
         {
           vidaJogador: resultado.vidaJogador,
@@ -124,12 +127,15 @@ export default function QuizBattle({
           <p className="rk-quiz-enunciado">{pergunta.enunciado}</p>
           <div className="rk-quiz-options">
             {ALTERNATIVAS.map((alt) => {
+              const respondida = escolhida !== null;
               const marcada = escolhida === alt;
-              const classeExtra = marcada
-                ? acertouUltima
-                  ? " rk-quiz-option--ok"
-                  : " rk-quiz-option--bad"
-                : "";
+              const revelarCorreta = respondida && !acertouUltima && correta === alt;
+              let classeExtra = "";
+              if (marcada) {
+                classeExtra = acertouUltima ? " rk-quiz-option--ok" : " rk-quiz-option--bad";
+              } else if (revelarCorreta) {
+                classeExtra = " rk-quiz-option--correct";
+              }
               return (
                 <button
                   key={alt}
@@ -140,6 +146,9 @@ export default function QuizBattle({
                 >
                   <span className="rk-quiz-letter">{alt}</span>
                   <span>{textoAlternativa(pergunta, alt)}</span>
+                  {revelarCorreta && (
+                    <span className="rk-quiz-correct-tag">✓ correta</span>
+                  )}
                 </button>
               );
             })}

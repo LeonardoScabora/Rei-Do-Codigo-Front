@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { criarUsuario, type Usuario } from "./api";
-import { useMatrixRain } from "./Components/MatrixRain";
+import { pauseMenuMusic, playMenuMusic } from "./audio/music";
+import { MatrixRain } from "./Components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
 import GameRoot from "./game/GameRoot";
 import "./game/Style.css";
@@ -14,14 +15,19 @@ type AppScreen = "menu" | "game";
 const STORAGE_KEY = "reidocodigo.usuarioId";
 
 export default function App() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [screen, setScreen] = useState<AppScreen>("menu");
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [crownActive, setCrownActive] = useState(false);
 
-  useMatrixRain(canvasRef);
+  useEffect(() => {
+    if (screen === "menu") {
+      playMenuMusic();
+    } else {
+      pauseMenuMusic();
+    }
+  }, [screen]);
 
   function entrarNoJogo(u: Usuario) {
     localStorage.setItem(STORAGE_KEY, String(u.id));
@@ -64,7 +70,7 @@ export default function App() {
       {screen === "menu" && (
         <>
           <div className="rk-bg" />
-          <canvas ref={canvasRef} className="rk-canvas" />
+          <MatrixRain className="rk-canvas" />
           <div className="rk-vignette" />
           <div className="rk-content">
             <Menu

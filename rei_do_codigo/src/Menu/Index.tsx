@@ -103,7 +103,28 @@ function Menu({
   createError = null,
 }: Props) {
   const [screen, setScreen] = useState<Screen>("menu");
-  const goBack = () => setScreen("menu");
+  const [nomeGuerreiro, setNomeGuerreiro] = useState<string | null>(null);
+
+  const goBack = () => {
+    setNomeGuerreiro(null);
+    setScreen("menu");
+  };
+
+  const abrirTela = (proxima: Screen) => {
+    setNomeGuerreiro(null);
+    setScreen(proxima);
+  };
+
+  // Save já vencido: nova jornada reaproveitando o nome do guerreiro,
+  // pulando a etapa de inserção do nome.
+  const handleLoad = (usuario: Usuario) => {
+    if (usuario.venceuRei) {
+      setNomeGuerreiro(usuario.nome);
+      setScreen("new");
+      return;
+    }
+    onLoadGame(usuario);
+  };
 
   return (
     <>
@@ -113,17 +134,18 @@ function Menu({
         <span className="rk-diamond" />
       </div>
 
-      {screen === "menu" && <MainMenu onSelect={setScreen} />}
+      {screen === "menu" && <MainMenu onSelect={abrirTela} />}
       {screen === "new" && (
         <NewGameScreen
           onBack={goBack}
           onConfirm={onConfirmNewGame}
           submitting={creating}
           error={createError}
+          nomeInicial={nomeGuerreiro}
         />
       )}
       {screen === "load" && (
-        <LoadGameScreen onBack={goBack} onLoad={onLoadGame} />
+        <LoadGameScreen onBack={goBack} onLoad={handleLoad} />
       )}
       {screen === "options" && <OptionsScreen onBack={goBack} />}
     </>

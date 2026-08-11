@@ -12,6 +12,7 @@ import {
   type ResultadoAcao,
   type TerminalSessao,
 } from "../api";
+import { labelLinguagem } from "../Menu/language";
 
 type Props = {
   batalha: Batalha;
@@ -308,7 +309,7 @@ export default function CodeBattle({
 
   return (
     <div className="rk-side-panel rk-side-panel--code">
-      <p className="rk-side-panel__title">Terminal · {linguagem}</p>
+      <p className="rk-side-panel__title">Terminal · {labelLinguagem(linguagem)}</p>
       {carregando && <p className="rk-hint">Carregando desafio...</p>}
       {erro && <p className="rk-error">{erro}</p>}
       {feedback && (

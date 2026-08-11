@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import { excluirUsuario, listarUsuarios, type Usuario } from "../../api";
 import { labelNivel } from "../difficulty";
+import { labelLinguagem } from "../language";
 
 type Props = {
   onBack: () => void;
   onLoad: (usuario: Usuario) => void;
 };
-
-function labelLinguagem(lang: string) {
-  if (lang === "JAVA") return "Java";
-  if (lang === "PYTHON") return "Python";
-  if (lang === "CPP") return "C++";
-  return lang;
-}
 
 function textoProgresso(usuario: Usuario) {
   if (usuario.venceuRei) return "Venceu o Rei do Código";

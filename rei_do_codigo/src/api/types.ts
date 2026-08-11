@@ -63,6 +63,8 @@ export interface ResultadoAcao {
   mensagem: string;
   stdout?: string;
   stderr?: string;
+  /** Alternativa correta da pergunta respondida (só em batalhas de múltipla escolha). */
+  alternativaCorreta?: Alternativa | null;
 }
 
 export interface TerminalSessao {

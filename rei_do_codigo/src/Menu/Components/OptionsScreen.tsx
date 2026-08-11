@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { setMusicVolume } from "../../audio/music";
 
 interface AudioSettings {
   music: number;
@@ -66,6 +67,7 @@ export default function OptionsScreen({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    setMusicVolume(settings.music);
   }, [settings]);
 
   useEffect(() => {

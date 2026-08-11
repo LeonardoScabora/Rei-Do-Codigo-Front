@@ -253,6 +253,22 @@
   box-shadow: 0 0 10px rgba(255, 100, 100, 0.3);
 }
 
+/* Revela a alternativa correta quando o jogador erra */
+.rk-quiz-option--correct {
+  border-color: #6cff9a !important;
+  background: rgba(60, 255, 120, 0.16) !important;
+  box-shadow: 0 0 12px rgba(80, 255, 140, 0.45);
+}
+
+.rk-quiz-correct-tag {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #6cff9a;
+  text-shadow: 0 0 6px rgba(108, 255, 154, 0.8);
+}
+
 .rk-quiz-advance {
   margin-top: 14px;
   justify-content: flex-end;

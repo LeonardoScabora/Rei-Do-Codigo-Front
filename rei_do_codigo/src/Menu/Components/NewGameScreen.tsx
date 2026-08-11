@@ -79,18 +79,22 @@ export default function NewGameScreen({
   onConfirm,
   submitting = false,
   error = null,
+  nomeInicial = null,
 }: {
   onBack: () => void;
   onConfirm: (nome: string, lang: LanguageKey, difficulty: DifficultyKey) => void;
   submitting?: boolean;
   error?: string | null;
+  /** Quando definido (ex.: nova jornada de um save vencido), pula a etapa do nome. */
+  nomeInicial?: string | null;
 }) {
   const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selected, setSelected] = useState<LanguageKey | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyKey | null>(null);
   const [diffHover, setDiffHover] = useState<number | null>(null);
-  const [nome, setNome] = useState("");
+  const [nome, setNome] = useState(nomeInicial ?? "");
+  const nomeFixo = Boolean(nomeInicial);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -133,7 +137,7 @@ export default function NewGameScreen({
 
   return (
     <>
-      <div className="rk-panel">
+      <div className="rk-panel rk-newgame-panel">
         <div className="rk-subtitle">
           <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
         </div>
@@ -156,7 +160,7 @@ export default function NewGameScreen({
                 setHoverIndex(i);
                 setSelected(lang.key);
                 setDifficulty(null);
-                setNome("");
+                if (!nomeFixo) setNome("");
               }}
             >
               {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
@@ -199,7 +203,13 @@ export default function NewGameScreen({
           </div>
         )}
 
-        {selected && difficulty && (
+        {selected && difficulty && nomeFixo && (
+          <div className="rk-subtitle rk-subtitle-nested rk-name-fixed">
+            <span className="rk-diamond-sm" /> Guerreiro: {nome} <span className="rk-diamond-sm" />
+          </div>
+        )}
+
+        {selected && difficulty && !nomeFixo && (
           <div className="rk-name-field rk-name-field-after">
             <label htmlFor="player-name">Nome do guerreiro</label>
             <input
