@@ -65,4 +65,14 @@ export interface ResultadoAcao {
   stderr?: string;
 }
 
+export interface TerminalSessao {
+  sessionId?: string | null;
+  stdout?: string;
+  stderr?: string;
+  aguardandoEntrada: boolean;
+  finalizado: boolean;
+  sucesso: boolean;
+  mensagem?: string | null;
+}
+
 export type Alternativa = "A" | "B" | "C" | "D";

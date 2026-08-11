@@ -287,6 +287,115 @@
   color: #ff8a8a !important;
 }
 
+.rk-side-panel--code {
+  text-align: left;
+}
+
+.rk-side-panel--code .rk-side-panel__title,
+.rk-side-panel--code .rk-quiz-enunciado,
+.rk-side-panel--code .rk-desafio-info,
+.rk-side-panel--code .rk-io-examples,
+.rk-side-panel--code .rk-terminal-out {
+  text-align: left;
+}
+
+.rk-live-terminal {
+  width: 100%;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.rk-live-terminal > strong {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #4fce7c;
+  text-align: left;
+}
+
+.rk-live-terminal__body {
+  margin-top: 6px;
+  min-height: 140px;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 10px 12px;
+  background: #020805;
+  border: 1px solid #2e9c57;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #d2ffe0;
+  text-align: left;
+}
+
+.rk-term-sys {
+  color: #4fce7c;
+  opacity: 0.85;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.rk-live-terminal__log,
+.rk-live-terminal__err {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: left;
+}
+
+.rk-live-terminal__err {
+  color: #ff8a8a;
+}
+
+.rk-term-input-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 0;
+  text-align: left;
+}
+
+.rk-term-tail {
+  color: #d2ffe0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.rk-term-input-form {
+  display: inline-flex;
+  flex: 1;
+  min-width: 4ch;
+  margin: 0;
+}
+
+.rk-term-input {
+  width: 100%;
+  min-width: 4ch;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f0fff4;
+  caret-color: #6cff9a;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  padding: 0;
+  text-align: left;
+}
+
+.rk-io-examples pre,
+.rk-terminal-out pre {
+  text-align: left;
+}
+
 .rk-editor-wrap {
   position: relative;
   width: 100%;
@@ -309,6 +418,7 @@
 
 .rk-code-actions {
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .rk-confirm-btn:disabled {
