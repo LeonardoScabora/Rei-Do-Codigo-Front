@@ -8,8 +8,8 @@ import {
   type ResultadoAcao,
   type Usuario,
 } from "../api";
-import { labelNivel } from "../Menu/difficulty";
 import { labelLinguagem } from "../Menu/language";
+import CrownIcon from "../Components/CrownIcon";
 import CodeBattle from "./CodeBattle";
 import CorridorScene, { type CorridorMode } from "./CorridorScene";
 import DialogueBox from "./DialogueBox";
@@ -40,6 +40,24 @@ const WALK_MS = 3200;
 const HIT_MS = 700;
 const FALL_MS = 1400;
 
+const NUMERO_NIVEL: Record<string, number> = {
+  INICIANTE: 1,
+  INTERMEDIARIO: 2,
+  AVANCADO: 3,
+};
+
+function FlameIcon() {
+  return (
+    <svg viewBox="0 0 16 20" width="16" height="20" aria-hidden className="rk-flame-icon">
+      <path
+        d="M8 0 L10 4 L13 3 L12 8 L16 10 L12 13 L13 19 L8 16 L3 19 L4 13 L0 10 L4 8 L3 3 L6 4 Z"
+        fill="#ff8a2a"
+      />
+      <path d="M8 6 L10 9 L8 14 L6 9 Z" fill="#ffd76a" />
+    </svg>
+  );
+}
+
 export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Props) {
   const [usuario, setUsuario] = useState(usuarioInicial);
   const [inimigos, setInimigos] = useState<Inimigo[]>([]);
@@ -50,6 +68,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [knightPose, setKnightPose] = useState<KnightPose>("walk");
   const [enemyPose, setEnemyPose] = useState<EnemyPose>("approach");
   const [animandoHit, setAnimandoHit] = useState(false);
+  const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
 
@@ -125,6 +144,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
 
   function atualizarBatalha(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
     setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
+    setSequencia((s) => (resultado.acertou ? s + 1 : 0));
     setAnimandoHit(true);
 
     if (resultado.acertou) {
@@ -196,18 +216,36 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       fase === "enemy_fall");
   const emBatalha = fase === "battle" && batalha;
   const painelDireito = emBatalha || fase === "enemy_fall";
+  const numeroNivel = NUMERO_NIVEL[usuario.nivel] ?? 1;
+  const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
+  const vidaAtual = batalha?.vidaJogador ?? 3;
 
   return (
     <div className={`rk-game-root${painelDireito ? " rk-game-root--split" : ""}`}>
-      <div className="rk-game-toolbar">
-        <button type="button" className="rk-back-btn" onClick={onSair}>
-          ‹ Menu
+      <header className="rk-game-header">
+        <button type="button" className="rk-menu-btn" onClick={onSair}>
+          <span className="rk-menu-btn__icon" aria-hidden>
+            <i />
+            <i />
+            <i />
+          </span>
+          Menu
         </button>
-        <span className="rk-game-toolbar__meta">
-          {usuario.nome} · {labelLinguagem(usuario.linguagem)} · {labelNivel(usuario.nivel)} · sala{" "}
-          {usuario.progresso}
-        </span>
-      </div>
+
+        <div className="rk-game-header__title">
+          <CrownIcon className="rk-game-header__crown" width={36} height={26} />
+          <h1 className="rk-game-header__name">Corredor Real</h1>
+          <span className="rk-level-banner">Nível {usuario.progresso}</span>
+        </div>
+
+        <div className="rk-game-header__meta">
+          <span>{usuario.nome}</span>
+          <i aria-hidden>·</i>
+          <span>{labelLinguagem(usuario.linguagem)}</span>
+          <i aria-hidden>·</i>
+          <span>Sala {usuario.progresso}</span>
+        </div>
+      </header>
 
       {erro && <p className="rk-error rk-game-error">{erro}</p>}
 
@@ -268,6 +306,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             {batalha.tipoInimigo === "MULTIPLA_ESCOLHA" ? (
               <QuizBattle
                 batalha={batalha}
+                totalPerguntas={inimigoAtual.vidaMaxima}
                 onAtualizarBatalha={atualizarBatalha}
                 disabled={animandoHit || fase !== "battle"}
               />
@@ -282,6 +321,55 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
           </aside>
         )}
       </div>
+
+      <footer className="rk-game-footer">
+        <div className="rk-footer-block">
+          <span className="rk-footer-block__label">Status</span>
+          <span className="rk-footer-status">
+            <span className="rk-footer-status__heart" aria-hidden>
+              ♥
+            </span>
+            {vidaAtual}/3
+          </span>
+        </div>
+
+        <div className="rk-footer-block rk-footer-block--progress">
+          <span className="rk-footer-block__label">Progresso</span>
+          <div
+            className="rk-progress-track"
+            role="img"
+            aria-label={`Sala ${usuario.progresso} de ${salas.length}`}
+          >
+            {salas.map((sala, i) => {
+              const vencida = usuario.progresso > sala.ordemNoCorredor;
+              const atual = usuario.progresso === sala.ordemNoCorredor;
+              const classe = `rk-progress-step${vencida ? " rk-progress-step--done" : ""}${
+                atual ? " rk-progress-step--current" : ""
+              }`;
+              return (
+                <span key={sala.id} className="rk-progress-seg">
+                  {i > 0 && <span className="rk-progress-line" aria-hidden />}
+                  {sala.ehRei ? (
+                    <span className={`${classe} rk-progress-step--boss`} aria-hidden>
+                      <CrownIcon width={22} height={16} className="rk-progress-crown" />
+                    </span>
+                  ) : (
+                    <span className={classe} aria-hidden />
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rk-footer-block">
+          <span className="rk-footer-block__label">Sequência</span>
+          <span className="rk-footer-streak">
+            <FlameIcon />
+            {sequencia}
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }

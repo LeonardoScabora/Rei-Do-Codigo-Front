@@ -17,6 +17,27 @@ type Props = {
   compact?: boolean;
 };
 
+// /** Pilares, estandartes e tochas do corredor (duplicado para o scroll). */
+// function DecorSet() {
+//   return (
+//     <>
+//       <span className="rk-window rk-window--l" />
+//       <div className="rk-pillar rk-pillar--l">
+//         <span className="rk-pillar__cap" />
+//         <span className="rk-torch" />
+//       </div>
+//       <span className="rk-wallbanner rk-wallbanner--purple rk-wallbanner--pl">{"</>"}</span>
+//       <span className="rk-wallbanner rk-wallbanner--green">☠</span>
+//       <span className="rk-wallbanner rk-wallbanner--purple rk-wallbanner--pr">{"</>"}</span>
+//       <div className="rk-pillar rk-pillar--r">
+//         <span className="rk-pillar__cap" />
+//         <span className="rk-torch" />
+//       </div>
+//       <span className="rk-window rk-window--r" />
+//     </>
+//   );
+// }
+
 /**
  * Cavaleiro fica fixo na tela; o cenário (e o inimigo no mundo) se movem.
  */
@@ -36,31 +57,30 @@ export default function CorridorScene({
       <div className="rk-scene__sky" />
       <div className="rk-scene__far" />
       <div className="rk-scene__mid" />
+
+      {/* <div className="rk-scene__decor" aria-hidden>
+        <div className="rk-scene__decor-half">
+          <DecorSet />
+        </div>
+        <div className="rk-scene__decor-half rk-scene__decor-half--dup">
+          <DecorSet />
+        </div>
+      </div> */}
+
       <div className="rk-scene__floor" />
-      <div className="rk-scene__torches" aria-hidden>
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
 
       <div className="rk-scene__actors">
         <div className="rk-scene__knight-slot">
-          <KnightSprite pose={knightPose} />
           {mode === "battle" && typeof vidaJogador === "number" && (
             <div className="rk-scene__hp rk-scene__hp--player">
               <VidasBar label="Você" atual={vidaJogador} maxima={3} />
             </div>
           )}
+          <KnightSprite pose={knightPose} />
         </div>
 
         {inimigo && enemyVisible && (
           <div className={`rk-scene__enemy-slot rk-scene__enemy-slot--${mode}`}>
-            <EnemySprite
-              nome={inimigo.nome}
-              ehRei={inimigo.ehRei}
-              pose={enemyPose}
-            />
             {mode === "battle" && typeof vidaInimigo === "number" && (
               <div className="rk-scene__hp rk-scene__hp--enemy">
                 <VidasBar
@@ -71,12 +91,16 @@ export default function CorridorScene({
                 />
               </div>
             )}
+            <EnemySprite
+              nome={inimigo.nome}
+              ehRei={inimigo.ehRei}
+              pose={enemyPose}
+            />
           </div>
         )}
       </div>
 
       <div className="rk-scene__vignette" />
-      <p className="rk-scene__label">Corredor Real</p>
     </div>
   );
 }

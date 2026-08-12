@@ -10,11 +10,27 @@ import {
 
 type Props = {
   batalha: Batalha;
+  /** Acertos necessários para vencer o inimigo (vida máxima dele). */
+  totalPerguntas?: number;
   onAtualizarBatalha: (parcial: Partial<Batalha>, resultado: ResultadoAcao) => void;
   disabled?: boolean;
 };
 
 const ALTERNATIVAS: Alternativa[] = ["A", "B", "C", "D"];
+
+function SkullIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden className="rk-skull-icon">
+      <path
+        d="M12 2 C6 2 3 6 3 10 C3 13 4.5 15 6 16 L6 19 L9 19 L9 21 L11 21 L11 19 L13 19 L13 21 L15 21 L15 19 L18 19 L18 16 C19.5 15 21 13 21 10 C21 6 18 2 12 2 Z"
+        fill="currentColor"
+      />
+      <rect x="6.5" y="9" width="4" height="4" fill="#0a1410" />
+      <rect x="13.5" y="9" width="4" height="4" fill="#0a1410" />
+      <rect x="11" y="14" width="2" height="2.5" fill="#0a1410" />
+    </svg>
+  );
+}
 
 function textoAlternativa(pergunta: Pergunta, alt: Alternativa): string {
   switch (alt) {
@@ -31,6 +47,7 @@ function textoAlternativa(pergunta: Pergunta, alt: Alternativa): string {
 
 export default function QuizBattle({
   batalha,
+  totalPerguntas,
   onAtualizarBatalha,
   disabled = false,
 }: Props) {
@@ -113,9 +130,21 @@ export default function QuizBattle({
   const podeResponder =
     batalha.status === "EM_ANDAMENTO" && !carregando && !enviando && !disabled && !aguardandoAvancar;
 
+  const numeroPergunta = Math.min(rodada + 1, totalPerguntas ?? rodada + 1);
+
   return (
     <div className="rk-side-panel">
-      <p className="rk-side-panel__title">Quiz · {batalha.nomeInimigo}</p>
+      <div className="rk-quiz-emblem" aria-hidden>
+        <SkullIcon />
+      </div>
+
+      <p className="rk-quiz-ribbon">Quiz · {batalha.nomeInimigo}</p>
+
+      <p className="rk-quiz-counter">
+        Pergunta {numeroPergunta}
+        {totalPerguntas ? `/${totalPerguntas}` : ""}
+      </p>
+
       {carregando && <p className="rk-hint">Carregando pergunta...</p>}
       {erro && <p className="rk-error">{erro}</p>}
       {feedback && (
@@ -123,8 +152,10 @@ export default function QuizBattle({
       )}
 
       {pergunta && !carregando && (
-        <div className="rk-panel rk-quiz-panel">
-          <p className="rk-quiz-enunciado">{pergunta.enunciado}</p>
+        <div className="rk-quiz-panel">
+          <div className="rk-quiz-question">
+            <p className="rk-quiz-enunciado">{pergunta.enunciado}</p>
+          </div>
           <div className="rk-quiz-options">
             {ALTERNATIVAS.map((alt) => {
               const respondida = escolhida !== null;
@@ -140,12 +171,12 @@ export default function QuizBattle({
                 <button
                   key={alt}
                   type="button"
-                  className={`rk-item rk-quiz-option${classeExtra}`}
+                  className={`rk-quiz-option${classeExtra}`}
                   disabled={!podeResponder}
                   onClick={() => void responder(alt)}
                 >
                   <span className="rk-quiz-letter">{alt}</span>
-                  <span>{textoAlternativa(pergunta, alt)}</span>
+                  <span className="rk-quiz-texto">{textoAlternativa(pergunta, alt)}</span>
                   {revelarCorreta && (
                     <span className="rk-quiz-correct-tag">✓ correta</span>
                   )}

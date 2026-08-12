@@ -1,3 +1,21 @@
+/* ===== Paleta do Corredor Real ===== */
+.rk-game-root {
+  --rk-neon: #00ff9d;
+  --rk-neon-dim: #3fbf7f;
+  --rk-neon-soft: #b8ffd9;
+  --rk-gold: #e8b23a;
+  --rk-gold-bright: #ffd76a;
+  --rk-purple: #5a3390;
+  --rk-purple-dark: #241540;
+  --rk-hp: #d8383e;
+  --rk-hp-dark: #5a1418;
+  --rk-amber: #ff9d3a;
+  --rk-bg: #04070a;
+  --rk-panel: #060c10;
+  --rk-line: rgba(0, 255, 157, 0.28);
+  --rk-line-soft: rgba(0, 255, 157, 0.12);
+}
+
 /* ===== Fullscreen game shell ===== */
 .rk-game-root {
   position: fixed;
@@ -5,30 +23,131 @@
   z-index: 5;
   display: flex;
   flex-direction: column;
-  background: #050806;
-  color: #7cffa0;
+  background:
+    radial-gradient(ellipse at 50% -10%, #0a1420 0%, var(--rk-bg) 60%);
+  color: var(--rk-neon-soft);
   overflow: hidden;
 }
 
-.rk-game-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(80, 255, 140, 0.2);
-  background: rgba(3, 10, 6, 0.92);
+/* ===== Header ===== */
+.rk-game-header {
+  position: relative;
   z-index: 6;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 18px 8px;
+  background: linear-gradient(180deg, rgba(2, 8, 6, 0.98), rgba(4, 10, 8, 0.9));
+  border-bottom: 1px solid var(--rk-line-soft);
 }
 
-.rk-game-toolbar .rk-back-btn {
-  margin-top: 0;
+.rk-menu-btn {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: rgba(4, 14, 10, 0.85);
+  border: 1.5px solid var(--rk-line);
+  color: var(--rk-neon);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.rk-game-toolbar__meta {
+.rk-menu-btn:hover,
+.rk-menu-btn:focus-visible {
+  background: rgba(0, 255, 157, 0.1);
+  box-shadow: 0 0 14px rgba(0, 255, 157, 0.35);
+  outline: none;
+}
+
+.rk-menu-btn__icon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rk-menu-btn__icon i {
+  width: 16px;
+  height: 2px;
+  background: var(--rk-neon);
+  box-shadow: 0 0 6px rgba(0, 255, 157, 0.8);
+}
+
+.rk-game-header__title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.rk-game-header__crown {
+  color: var(--rk-gold);
+  filter: drop-shadow(0 0 8px rgba(232, 178, 58, 0.6));
+}
+
+.rk-game-header__name {
+  margin: 0;
+  font-family: "IM Fell English SC", serif;
+  font-size: clamp(24px, 3.2vw, 38px);
+  line-height: 1;
+  letter-spacing: 2px;
+  color: #eafff2;
+  text-shadow:
+    0 0 14px rgba(0, 255, 157, 0.35),
+    0 2px 0 rgba(0, 0, 0, 0.8);
+}
+
+.rk-game-header__name::before {
+  content: "❖ ";
+  color: var(--rk-neon-dim);
+  font-size: 0.5em;
+  vertical-align: middle;
+}
+
+.rk-game-header__name::after {
+  content: " ❖";
+  color: var(--rk-neon-dim);
+  font-size: 0.5em;
+  vertical-align: middle;
+}
+
+.rk-level-banner {
+  position: relative;
+  margin-top: 4px;
+  padding: 6px 22px;
   font-family: "Press Start 2P", monospace;
   font-size: 9px;
-  color: #4fce7c;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--rk-neon-soft);
+  background: linear-gradient(180deg, rgba(8, 20, 14, 0.95), rgba(4, 10, 8, 0.95));
+  border: 1.5px solid var(--rk-line);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+}
+
+.rk-game-header__meta {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rk-neon);
+  text-shadow: 0 0 8px rgba(0, 255, 157, 0.5);
+}
+
+.rk-game-header__meta i {
+  font-style: normal;
+  color: var(--rk-neon-dim);
 }
 
 .rk-game-error {
@@ -47,33 +166,183 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
+  margin: 10px;
+  border: 2px solid #1c2a24;
+  outline: 1px solid var(--rk-line-soft);
+  outline-offset: 3px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.7),
+    0 0 22px rgba(0, 0, 0, 0.6);
 }
 
 .rk-game-root--split .rk-game-stage {
   flex: 1.05;
 }
 
+/* ===== Painel lateral (quiz/código) ===== */
 .rk-game-side {
+  position: relative;
   width: min(480px, 46vw);
-  min-width: 280px;
+  min-width: 300px;
   max-width: 520px;
-  border-left: 1px solid rgba(80, 255, 140, 0.25);
-  background: linear-gradient(180deg, rgba(6, 18, 11, 0.97), rgba(3, 10, 6, 0.98));
+  margin: 10px 10px 10px 0;
+  border: 2px solid #1c2a24;
+  outline: 1px solid var(--rk-line-soft);
+  outline-offset: 3px;
+  background:
+    linear-gradient(180deg, rgba(7, 14, 11, 0.98), rgba(4, 8, 7, 0.99));
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.7),
+    0 0 22px rgba(0, 0, 0, 0.6);
   overflow: auto;
-  padding: 12px;
+  padding: 14px;
   box-sizing: border-box;
 }
 
 .rk-side-panel__title {
   font-family: "Press Start 2P", monospace;
   font-size: 10px;
-  color: #c8ffdc;
+  color: var(--rk-neon-soft);
   margin: 0 0 12px;
   letter-spacing: 0.5px;
 }
 
 .rk-side-panel--code .rk-editor-wrap {
   height: 220px;
+}
+
+/* ===== Footer ===== */
+.rk-game-footer {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 14px 14px;
+  background: linear-gradient(180deg, rgba(4, 10, 8, 0.9), rgba(2, 6, 5, 0.98));
+  border-top: 1px solid var(--rk-line-soft);
+}
+
+.rk-footer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 22px;
+  min-width: 130px;
+  background: rgba(4, 12, 9, 0.8);
+  border: 1.5px solid #1c2a24;
+  outline: 1px solid var(--rk-line-soft);
+  outline-offset: 2px;
+}
+
+.rk-footer-block--progress {
+  flex: 1;
+}
+
+.rk-footer-block__label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--rk-neon);
+  text-shadow: 0 0 8px rgba(0, 255, 157, 0.45);
+}
+
+.rk-footer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 15px;
+  color: #eafff2;
+}
+
+.rk-footer-status__heart {
+  color: var(--rk-hp);
+  font-size: 18px;
+  text-shadow: 0 0 8px rgba(255, 80, 80, 0.7);
+}
+
+.rk-footer-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 15px;
+  color: var(--rk-amber);
+  text-shadow: 0 0 10px rgba(255, 157, 58, 0.6);
+}
+
+.rk-flame-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 138, 42, 0.8));
+}
+
+/* trilha de progresso */
+.rk-progress-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  justify-content: center;
+}
+
+.rk-progress-seg {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.rk-progress-seg:first-child {
+  flex: 0;
+}
+
+.rk-progress-line {
+  flex: 1;
+  height: 2px;
+  min-width: 18px;
+  background: #22332b;
+}
+
+.rk-progress-step {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #131d18;
+  border: 2px solid #2c4237;
+  flex-shrink: 0;
+}
+
+.rk-progress-step--done {
+  background: var(--rk-neon-dim);
+  border-color: var(--rk-neon-dim);
+}
+
+.rk-progress-step--current {
+  background: var(--rk-neon);
+  border-color: var(--rk-neon-soft);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.8);
+}
+
+.rk-progress-step--boss {
+  width: auto;
+  height: auto;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  display: inline-flex;
+  box-shadow: none;
+}
+
+.rk-progress-crown {
+  color: #6a5222;
+}
+
+.rk-progress-step--current .rk-progress-crown,
+.rk-progress-step--done .rk-progress-crown {
+  color: var(--rk-gold);
+  filter: drop-shadow(0 0 8px rgba(232, 178, 58, 0.7));
 }
 
 /* ===== Crown transition ===== */
@@ -143,14 +412,14 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #070b09;
+  background: #060a10;
 }
 
 .rk-scene__sky,
 .rk-scene__far,
 .rk-scene__mid,
 .rk-scene__floor,
-.rk-scene__torches {
+.rk-scene__decor {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -158,72 +427,198 @@
 
 .rk-scene__sky {
   background:
-    radial-gradient(ellipse at 50% 0%, #1a2a22 0%, #070b09 55%, #040605 100%);
+    radial-gradient(ellipse at 50% 0%, #14222c 0%, #080e14 55%, #04070a 100%);
 }
 
+/* nevoazinha de fundo com arcos distantes */
 .rk-scene__far {
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent 0 70px,
-    rgba(40, 70, 50, 0.18) 70px 72px
-  );
-  opacity: 0.55;
+  background-image:
+    radial-gradient(ellipse at 50% 30%, rgba(60, 30, 90, 0.18) 0%, transparent 55%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 70px,
+      rgba(50, 70, 90, 0.16) 70px 72px
+    );
+  opacity: 0.6;
   transform: translateZ(0);
 }
 
+/* blocos de pedra da parede */
 .rk-scene__mid {
   background-image:
-    linear-gradient(180deg, transparent 0 28%, rgba(8, 14, 10, 0.35) 28% 72%, transparent 72%),
+    linear-gradient(180deg, transparent 0 26%, rgba(6, 10, 16, 0.4) 26% 74%, transparent 74%),
     repeating-linear-gradient(
       90deg,
-      #121a15 0 110px,
-      #0d1410 110px 118px,
-      #18241c 118px 230px
+      #121b22 0 110px,
+      #0c141b 110px 118px,
+      #17222b 118px 230px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 42px,
+      rgba(0, 0, 0, 0.35) 42px 44px
     );
-  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 80%, transparent 100%);
 }
 
+/* piso de pedra */
 .rk-scene__floor {
   top: auto;
-  height: 28%;
+  height: 27%;
+  z-index: 1;
   background:
-    linear-gradient(180deg, rgba(20, 30, 22, 0.2), #0a100c 40%, #050806),
+    linear-gradient(180deg, rgba(24, 34, 40, 0.35), #0a1014 40%, #05080a),
     repeating-linear-gradient(
       90deg,
-      #1a241c 0 48px,
-      #101710 48px 50px,
-      #222e24 50px 96px
+      #16212a 0 48px,
+      #0d141a 48px 50px,
+      #1c2933 50px 96px
     );
-  border-top: 2px solid rgba(108, 255, 154, 0.12);
+  border-top: 2px solid rgba(0, 255, 157, 0.14);
 }
 
-.rk-scene__torches {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  padding: 0 8% 30%;
+/* ===== Camada de decoração (pilares, estandartes, tochas) ===== */
+.rk-scene__decor {
+  z-index: 1;
 }
 
-.rk-scene__torches span {
-  width: 10px;
-  height: 42px;
+.rk-scene__decor-half {
+  position: absolute;
+  inset: 0;
+}
+
+.rk-scene__decor-half--dup {
+  left: 100%;
+}
+
+/* janela em arco com brilho ciano */
+.rk-window {
+  position: absolute;
+  top: 9%;
+  width: 58px;
+  height: 42%;
+  background:
+    linear-gradient(180deg, rgba(80, 230, 255, 0.5), rgba(20, 120, 160, 0.35) 55%, rgba(6, 40, 60, 0.3)),
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(2, 12, 18, 0.7) 26px 30px),
+    repeating-linear-gradient(90deg, transparent 0 16px, rgba(2, 12, 18, 0.7) 16px 20px);
+  clip-path: polygon(0 22%, 18% 8%, 50% 0, 82% 8%, 100% 22%, 100% 100%, 0 100%);
+  box-shadow: 0 0 34px rgba(60, 210, 255, 0.28);
+  opacity: 0.85;
+}
+
+.rk-window--l {
+  left: 3%;
+}
+
+.rk-window--r {
+  right: 3%;
+  display: none;
+}
+
+/* pilares de pedra */
+.rk-pillar {
+  position: absolute;
+  top: 6%;
+  bottom: 24%;
+  width: 64px;
+  background:
+    linear-gradient(90deg, #1a2630 0 18%, #26374338 18% 82%, #0e161d 82% 100%),
+    repeating-linear-gradient(180deg, #202f3a 0 30px, #17232c 30px 32px);
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(0, 0, 0, 0.65);
+}
+
+.rk-pillar--l {
+  left: 16%;
+}
+
+.rk-pillar--r {
+  right: 16%;
+}
+
+.rk-pillar__cap {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  right: -8px;
+  height: 14px;
+  background: linear-gradient(180deg, #2c3f4d, #17232c);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* tocha presa ao pilar */
+.rk-torch {
+  position: absolute;
+  bottom: 34%;
+  left: 50%;
+  width: 8px;
+  height: 34px;
+  transform: translateX(-50%);
   background: linear-gradient(#3a2a14, #1a1208);
-  position: relative;
-  box-shadow: 0 0 18px rgba(255, 160, 60, 0.25);
+  box-shadow: 0 0 22px rgba(255, 160, 60, 0.35);
 }
 
-.rk-scene__torches span::after {
+.rk-torch::after {
   content: "";
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 50%;
-  width: 14px;
-  height: 18px;
+  width: 16px;
+  height: 20px;
   transform: translateX(-50%);
-  background: radial-gradient(circle at 50% 70%, #ffe7a0, #ff8a2a 55%, transparent 70%);
+  background: radial-gradient(circle at 50% 75%, #ffe7a0, #ff8a2a 55%, transparent 72%);
   animation: rk-torch 0.7s ease-in-out infinite alternate;
 }
 
+/* estandartes pendurados */
+.rk-wallbanner {
+  position: absolute;
+  top: 7%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Press Start 2P", monospace;
+  clip-path: polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.4);
+}
+
+.rk-wallbanner--purple {
+  width: 54px;
+  height: 120px;
+  padding-top: 8px;
+  font-size: 11px;
+  color: #c9a6ff;
+  text-shadow: 0 0 8px rgba(160, 90, 255, 0.8);
+  background:
+    linear-gradient(180deg, var(--rk-purple) 0 14%, var(--rk-purple-dark) 14% 100%);
+  border-top: 3px solid #7a52b8;
+}
+
+.rk-wallbanner--pl {
+  left: calc(16% + 76px);
+}
+
+.rk-wallbanner--pr {
+  right: calc(16% + 76px);
+}
+
+.rk-wallbanner--green {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 150px;
+  padding-top: 10px;
+  font-size: 30px;
+  color: #0d1a10;
+  text-shadow: 0 0 10px rgba(0, 60, 20, 0.8);
+  background:
+    radial-gradient(circle at 50% 32%, rgba(180, 255, 200, 0.28) 0 22%, transparent 24%),
+    linear-gradient(180deg, #3f7a3a 0 12%, #2c5c2c 12% 100%);
+  border-top: 3px solid #5c9c50;
+}
+
+/* scroll da caminhada */
 .rk-scene--scroll .rk-scene__far {
   animation: rk-scroll-far 8s linear infinite;
 }
@@ -236,8 +631,8 @@
   animation: rk-scroll-floor 2.2s linear infinite;
 }
 
-.rk-scene--scroll .rk-scene__torches {
-  animation: rk-scroll-mid 4.5s linear infinite;
+.rk-scene--scroll .rk-scene__decor {
+  animation: rk-scroll-decor 9s linear infinite;
 }
 
 .rk-scene__actors {
@@ -254,7 +649,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .rk-scene__enemy-slot {
@@ -264,7 +659,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   right: 18%;
   transition: right 0.2s linear;
 }
@@ -280,8 +675,56 @@
   right: 18%;
 }
 
+/* ===== Barra de vida (pílula) ===== */
+.rk-hpbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(6, 4, 6, 0.9);
+  border: 2px solid #3a1418;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.rk-hpbar__heart {
+  color: var(--rk-hp);
+  font-size: 14px;
+  line-height: 1;
+  text-shadow: 0 0 6px rgba(255, 70, 70, 0.8);
+}
+
+.rk-hpbar__track {
+  position: relative;
+  width: 86px;
+  height: 14px;
+  background: var(--rk-hp-dark);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.rk-hpbar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(180deg, #ff6b6b 0 40%, var(--rk-hp) 40% 100%);
+  transition: width 0.35s ease;
+}
+
+.rk-hpbar__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9);
+}
+
 .rk-scene__hp {
-  transform: scale(0.9);
+  transform: scale(0.95);
   transform-origin: center bottom;
 }
 
@@ -290,21 +733,7 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.72) 100%);
-}
-
-.rk-scene__label {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  margin: 0;
-  font-family: "IM Fell English SC", serif;
-  font-size: clamp(22px, 3vw, 34px);
-  color: #8cffb0;
-  text-shadow: 0 0 12px rgba(80, 255, 130, 0.55);
-  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 5, 0.78) 100%);
 }
 
 .rk-scene--compact .rk-scene__knight-slot {
@@ -315,6 +744,22 @@
 .rk-scene--compact .rk-scene__enemy-slot {
   right: 10%;
   width: min(130px, 28%);
+}
+
+.rk-scene--compact .rk-pillar--l {
+  left: 10%;
+}
+
+.rk-scene--compact .rk-pillar--r {
+  right: 10%;
+}
+
+.rk-scene--compact .rk-wallbanner--pl {
+  left: calc(10% + 76px);
+}
+
+.rk-scene--compact .rk-wallbanner--pr {
+  right: calc(10% + 76px);
 }
 
 /* ===== Knight (pixel character) ===== */
@@ -791,9 +1236,11 @@
 }
 
 .rk-dialogue__panel {
-  border: 2px solid #c5c5c5bd;
-  background: linear-gradient(180deg, rgba(6, 18, 11, 0.95), rgba(3, 10, 6, 0.97));
-  box-shadow: 0 0 22px rgba(60, 255, 120, 0.25);
+  border: 2px solid #2c4237;
+  outline: 1px solid var(--rk-line-soft);
+  outline-offset: 3px;
+  background: linear-gradient(180deg, rgba(6, 14, 11, 0.96), rgba(3, 8, 6, 0.98));
+  box-shadow: 0 0 22px rgba(0, 255, 157, 0.2);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -804,7 +1251,7 @@
   margin: 0;
   font-family: "Press Start 2P", monospace;
   font-size: 11px;
-  color: #c8ffdc;
+  color: var(--rk-neon-soft);
 }
 
 .rk-dialogue__text {
@@ -828,26 +1275,33 @@
   z-index: 9;
   width: min(480px, 90%);
   padding: 22px;
-  border: 2px solid #c5c5c5bd;
-  background: rgba(3, 10, 6, 0.95);
-  box-shadow: 0 0 24px rgba(60, 255, 120, 0.3);
+  border: 2px solid #2c4237;
+  outline: 1px solid var(--rk-line-soft);
+  outline-offset: 3px;
+  background: rgba(3, 8, 6, 0.96);
+  box-shadow: 0 0 24px rgba(0, 255, 157, 0.25);
   text-align: center;
 }
 
 /* ===== Animations ===== */
 @keyframes rk-scroll-far {
-  from { background-position: 0 0; }
-  to { background-position: -280px 0; }
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 0, -280px 0; }
 }
 
 @keyframes rk-scroll-mid {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 0 0, -230px 0; }
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 0 0, -230px 0, 0 0; }
 }
 
 @keyframes rk-scroll-floor {
   from { background-position: 0 0, 0 0; }
   to { background-position: 0 0, -96px 0; }
+}
+
+@keyframes rk-scroll-decor {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
 }
 
 @keyframes rk-enemy-approach {
@@ -941,22 +1395,54 @@
   to { transform: translateX(-50%) scaleY(1.15); opacity: 1; }
 }
 
+@media (max-width: 1100px) {
+  .rk-game-header__meta {
+    font-size: 8px;
+  }
+}
+
 @media (max-width: 900px) {
+  .rk-game-header {
+    grid-template-columns: auto 1fr;
+  }
+
+  .rk-game-header__title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .rk-game-header__meta {
+    padding-top: 12px;
+  }
+
   .rk-game-root--split .rk-game-body {
     flex-direction: column;
   }
 
   .rk-game-side {
-    width: 100%;
+    width: auto;
     max-width: none;
     min-width: 0;
     height: 48%;
-    border-left: none;
-    border-top: 1px solid rgba(80, 255, 140, 0.25);
+    margin: 0 10px 10px;
   }
 
   .rk-game-root--split .rk-game-stage {
     height: 52%;
+    margin-bottom: 10px;
+  }
+
+  .rk-game-footer {
+    flex-wrap: wrap;
+  }
+
+  .rk-footer-block--progress {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .rk-footer-block {
+    flex: 1;
   }
 }
 
@@ -964,7 +1450,7 @@
   .rk-scene--scroll .rk-scene__far,
   .rk-scene--scroll .rk-scene__mid,
   .rk-scene--scroll .rk-scene__floor,
-  .rk-scene--scroll .rk-scene__torches,
+  .rk-scene--scroll .rk-scene__decor,
   .rk-knight-sprite--walk,
   .rk-knight-sprite--walk .rk-knight-leg--l,
   .rk-knight-sprite--walk .rk-knight-leg--r,
@@ -975,7 +1461,7 @@
   .rk-knight-sprite--idle .rk-knight-cloak,
   .rk-enemy-sprite--idle,
   .rk-enemy-sprite--approach,
-  .rk-scene__torches span::after {
+  .rk-torch::after {
     animation: none !important;
   }
 }
