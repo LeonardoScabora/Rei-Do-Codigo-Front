@@ -54,20 +54,12 @@ export default function CorridorScene({
 }: Props) {
   return (
     <div className={`rk-scene${compact ? " rk-scene--compact" : ""}${scrolling ? " rk-scene--scroll" : ""}`}>
-      <div className="rk-scene__sky" />
-      <div className="rk-scene__far" />
-      <div className="rk-scene__mid" />
-
-      {/* <div className="rk-scene__decor" aria-hidden>
-        <div className="rk-scene__decor-half">
-          <DecorSet />
+      <div className="rk-scene__backdrop" aria-hidden>
+        <div className="rk-scene__backdrop-track">
+          <img className="rk-scene__backdrop-img" src="/game/fundo-corredor.png" alt="" draggable={false} />
+          <img className="rk-scene__backdrop-img" src="/game/fundo-corredor.png" alt="" draggable={false} />
         </div>
-        <div className="rk-scene__decor-half rk-scene__decor-half--dup">
-          <DecorSet />
-        </div>
-      </div> */}
-
-      <div className="rk-scene__floor" />
+      </div>
 
       <div className="rk-scene__actors">
         <div className="rk-scene__knight-slot">
