@@ -33,9 +33,13 @@ export default function CrownTransition({ active, onDone }: Props) {
 
   if (!active && phase === "idle") return null;
 
+  // No primeiro frame com active=true o useEffect ainda não rodou; tratar como "shrink"
+  // para o véu preto cobrir o jogo imediatamente.
+  const displayPhase = active && phase === "idle" ? "shrink" : phase;
+
   return (
     <div
-      className={`rk-crown-transition rk-crown-transition--${phase}`}
+      className={`rk-crown-transition rk-crown-transition--${displayPhase}`}
       aria-hidden
     >
       <div className="rk-crown-transition__veil" />
