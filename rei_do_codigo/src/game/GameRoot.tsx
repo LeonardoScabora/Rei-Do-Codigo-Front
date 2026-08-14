@@ -14,7 +14,7 @@ import CodeBattle from "./CodeBattle";
 import CorridorScene, { type CorridorMode } from "./CorridorScene";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
-import type { KnightPose } from "./sprites/KnightSprite";
+import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
 import type { EnemyPose } from "./sprites/EnemySprite";
 import "./Style.css";
 import "./Corridor.css";
@@ -37,14 +37,10 @@ type Fase =
 
 const DIALOGO_PADRAO = "Voce nunca passara por mim verme!";
 const WALK_MS = 3200;
-const HIT_MS = 700;
 const FALL_MS = 1400;
-
-const NUMERO_NIVEL: Record<string, number> = {
-  INICIANTE: 1,
-  INTERMEDIARIO: 2,
-  AVANCADO: 3,
-};
+const ATTACK_MS = KNIGHT_ANIM_MS.attack;
+const ATTACK_BLAST_MS = KNIGHT_ANIM_MS.attackBlast;
+const HURT_MS = KNIGHT_ANIM_MS.hurt;
 
 function FlameIcon() {
   return (
@@ -68,15 +64,22 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [knightPose, setKnightPose] = useState<KnightPose>("walk");
   const [enemyPose, setEnemyPose] = useState<EnemyPose>("approach");
   const [animandoHit, setAnimandoHit] = useState(false);
+  const [energyBlast, setEnergyBlast] = useState(false);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
+  const attackEndTimer = useRef<number | null>(null);
+  const pendingHitRef = useRef<{ parcial: Partial<Batalha>; resultado: ResultadoAcao } | null>(null);
 
   const limparTimers = useCallback(() => {
     if (walkTimer.current) window.clearTimeout(walkTimer.current);
     if (hitTimer.current) window.clearTimeout(hitTimer.current);
+    if (attackEndTimer.current) window.clearTimeout(attackEndTimer.current);
     walkTimer.current = null;
     hitTimer.current = null;
+    attackEndTimer.current = null;
+    pendingHitRef.current = null;
+    setEnergyBlast(false);
   }, []);
 
   const iniciarCaminhada = useCallback(
@@ -142,41 +145,75 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     }
   }
 
+  function finalizarAposAnimacao(resultado: ResultadoAcao) {
+    setAnimandoHit(false);
+
+    if (resultado.status === "VITORIA") {
+      setKnightPose("idle");
+      setEnemyPose("fall");
+      setFase("enemy_fall");
+      window.setTimeout(() => void aposVitoria(), FALL_MS);
+      return;
+    }
+
+    if (resultado.status === "DERROTA") {
+      setKnightPose("defeat");
+      setEnemyPose("idle");
+      setFase("defeat");
+      return;
+    }
+
+    setKnightPose("idle");
+    setEnemyPose("idle");
+  }
+
+  const resolverImpactoEnergia = useCallback(() => {
+    const pending = pendingHitRef.current;
+    if (!pending) return;
+
+    pendingHitRef.current = null;
+    setEnergyBlast(false);
+    setBatalha((atual) => (atual ? { ...atual, ...pending.parcial } : atual));
+    setEnemyPose("hurt");
+
+    hitTimer.current = window.setTimeout(() => {
+      finalizarAposAnimacao(pending.resultado);
+    }, HURT_MS);
+  }, []);
+
   function atualizarBatalha(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
-    setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
     setSequencia((s) => (resultado.acertou ? s + 1 : 0));
     setAnimandoHit(true);
 
+    if (hitTimer.current) window.clearTimeout(hitTimer.current);
+    if (attackEndTimer.current) window.clearTimeout(attackEndTimer.current);
+    pendingHitRef.current = null;
+    setEnergyBlast(false);
+
     if (resultado.acertou) {
+      // Rajada sai no frame do golpe; idle só quando o sprite de ataque termina.
       setKnightPose("attack");
-      setEnemyPose("hurt");
-    } else {
-      setEnemyPose("attack");
-      setKnightPose("hurt");
+      setEnemyPose("idle");
+
+      hitTimer.current = window.setTimeout(() => {
+        pendingHitRef.current = { parcial, resultado };
+        setEnergyBlast(true);
+      }, ATTACK_BLAST_MS);
+
+      attackEndTimer.current = window.setTimeout(() => {
+        setKnightPose("idle");
+      }, ATTACK_MS);
+      return;
     }
 
-    if (hitTimer.current) window.clearTimeout(hitTimer.current);
+    // Errou: perde vida + Hurt, depois Idle.
+    setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
+    setEnemyPose("attack");
+    setKnightPose("hurt");
+
     hitTimer.current = window.setTimeout(() => {
-      setAnimandoHit(false);
-
-      if (resultado.status === "VITORIA") {
-        setKnightPose("idle");
-        setEnemyPose("fall");
-        setFase("enemy_fall");
-        window.setTimeout(() => void aposVitoria(), FALL_MS);
-        return;
-      }
-
-      if (resultado.status === "DERROTA") {
-        setKnightPose("defeat");
-        setEnemyPose("idle");
-        setFase("defeat");
-        return;
-      }
-
-      setKnightPose("idle");
-      setEnemyPose("idle");
-    }, HIT_MS);
+      finalizarAposAnimacao(resultado);
+    }, HURT_MS);
   }
 
   async function aposVitoria() {
@@ -216,7 +253,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       fase === "enemy_fall");
   const emBatalha = fase === "battle" && batalha;
   const painelDireito = emBatalha || fase === "enemy_fall";
-  const numeroNivel = NUMERO_NIVEL[usuario.nivel] ?? 1;
   const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
   const vidaAtual = batalha?.vidaJogador ?? 3;
 
@@ -263,6 +299,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             vidaJogador={batalha?.vidaJogador}
             vidaInimigo={batalha?.vidaInimigo}
             compact={Boolean(painelDireito)}
+            energyBlast={energyBlast}
+            onEnergyBlastHit={resolverImpactoEnergia}
           />
 
           {fase === "dialogue" && inimigoAtual && (

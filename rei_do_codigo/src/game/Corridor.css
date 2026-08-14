@@ -448,8 +448,9 @@
 }
 
 .rk-scene:not(.rk-scene--scroll) .rk-scene__backdrop-img:first-child {
-  width: 100%;
+  width: auto;
   height: 100%;
+  min-width: 100%;
   object-fit: cover;
   object-position: center bottom;
 }
@@ -614,25 +615,84 @@
   z-index: 2;
 }
 
+.rk-energy-blast {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
 .rk-scene__knight-slot {
   position: absolute;
   left: 14%;
-  bottom: 14%;
-  width: 120px;
+  bottom: 26%;
+  overflow: visible;
+  z-index: 2;
+}
+
+.rk-scene__knight-move {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  will-change: transform;
+}
+
+.rk-knight-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 110px;
+}
+
+.rk-knight-visual {
+  position: relative;
+  width: 110px;
+  height: 168px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* ===== Knight sprite sheets ===== */
+.rk-knight-sprite {
+  --rk-knight-size: 340px;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--rk-knight-size);
+  height: var(--rk-knight-size);
+  /* centraliza o corpo no frame (personagem fica à esquerda do sheet) */
+  transform: translateX(-26.2%);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+}
+
+.rk-knight-sprite--hurt {
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 10px rgba(255, 80, 80, 0.55));
+}
+
+.rk-knight-sprite--defeat {
+  opacity: 0.85;
+  transform: translateX(-26.2%) translateY(22px) rotate(-80deg);
+  transform-origin: 50% 90%;
+  filter:
+    grayscale(0.35)
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
 }
 
 .rk-scene__enemy-slot {
   position: absolute;
-  bottom: 16%;
+  bottom: 26%;
   width: min(160px, 22vw);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   right: 18%;
   transition: right 0.2s linear;
 }
@@ -699,6 +759,12 @@
 .rk-scene__hp {
   transform: scale(0.95);
   transform-origin: center bottom;
+  align-self: center;
+}
+
+.rk-scene__hp--player,
+.rk-scene__hp--enemy {
+  margin-bottom: 0;
 }
 
 .rk-scene__vignette {
@@ -710,12 +776,11 @@
 }
 
 .rk-scene--compact .rk-scene__knight-slot {
-  left: 10%;
-  width: 120px;
+  left: 8%;
 }
 
 .rk-scene--compact .rk-scene__enemy-slot {
-  right: 10%;
+  right: 8%;
   width: min(130px, 28%);
 }
 
@@ -735,302 +800,11 @@
   right: calc(10% + 76px);
 }
 
-/* ===== Knight (pixel character) ===== */
-.rk-knight-sprite {
-  --armor: #2a3036;
-  --armor-mid: #3a424c;
-  --armor-light: #5a6570;
-  --gold: #b8923a;
-  --gold-bright: #d4af37;
-  --cloak: #2f4a32;
-  --cloak-dark: #1c2e1f;
-  --steel: #9aa3ad;
-  position: relative;
-  width: 120px;
-  height: 150px;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.65));
-}
-
-.rk-knight-body {
-  position: absolute;
-  inset: 0;
-}
-
-.rk-knight-cloak {
-  position: absolute;
-  left: 18px;
-  top: 38px;
-  width: 54px;
-  height: 78px;
-  background:
-    linear-gradient(160deg, var(--cloak) 0 55%, var(--cloak-dark) 55% 100%);
-  clip-path: polygon(20% 0, 90% 0, 100% 100%, 0 100%, 12% 40%);
-  z-index: 1;
-}
-
-.rk-knight-helm {
-  position: absolute;
-  left: 34px;
-  top: 8px;
-  width: 40px;
-  height: 38px;
-  background: var(--armor);
-  border: 2px solid var(--gold);
-  box-shadow: inset 3px 3px 0 var(--armor-light);
-  z-index: 4;
-}
-
-.rk-knight-visor {
-  position: absolute;
-  left: 6px;
-  top: 12px;
-  width: 28px;
-  height: 5px;
-  background: #0a0c0e;
-  box-shadow: 0 0 4px rgba(180, 220, 160, 0.25);
-}
-
-.rk-knight-breath {
-  position: absolute;
-  left: 14px;
-  top: 22px;
-  width: 12px;
-  height: 8px;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      #0a0c0e 0 2px,
-      transparent 2px 4px
-    );
-}
-
-.rk-knight-pauldron {
-  position: absolute;
-  top: 40px;
-  width: 22px;
-  height: 16px;
-  background: var(--armor-mid);
-  border: 2px solid var(--gold);
-  z-index: 5;
-}
-
-.rk-knight-pauldron--l {
-  left: 18px;
-  transform: skewY(-8deg);
-}
-
-.rk-knight-pauldron--r {
-  left: 68px;
-  transform: skewY(8deg);
-}
-
-.rk-knight-torso {
-  position: absolute;
-  left: 32px;
-  top: 44px;
-  width: 44px;
-  height: 42px;
-  background:
-    linear-gradient(180deg, var(--armor-light) 0 18%, var(--armor) 18% 100%);
-  border: 2px solid #1a1e22;
-  box-shadow: inset 0 0 0 2px rgba(184, 146, 58, 0.35);
-  z-index: 3;
-}
-
-.rk-knight-trim {
-  position: absolute;
-  left: 50%;
-  top: 10px;
-  width: 4px;
-  height: 24px;
-  transform: translateX(-50%);
-  background: var(--gold-bright);
-  opacity: 0.85;
-}
-
-.rk-knight-arm {
-  position: absolute;
-  top: 50px;
-  width: 12px;
-  height: 34px;
-  background: var(--armor-mid);
-  border: 1px solid #1a1e22;
-  transform-origin: top center;
-  z-index: 4;
-}
-
-.rk-knight-arm--back {
-  left: 22px;
-  z-index: 2;
-}
-
-.rk-knight-arm--front {
-  left: 74px;
-  z-index: 6;
-}
-
-.rk-knight-gauntlet {
-  position: absolute;
-  left: -2px;
-  bottom: -8px;
-  width: 14px;
-  height: 12px;
-  background: var(--armor);
-  border: 1px solid var(--gold);
-}
-
-.rk-knight-sword {
-  position: absolute;
-  left: 86px;
-  top: 34px;
-  width: 18px;
-  height: 92px;
-  transform-origin: 40% 18%;
-  z-index: 7;
-}
-
-.rk-knight-blade {
-  position: absolute;
-  left: 6px;
-  top: 18px;
-  width: 6px;
-  height: 70px;
-  background:
-    linear-gradient(90deg, #6d767f 0 30%, var(--steel) 30% 70%, #d7dde3 70% 100%);
-  box-shadow: 1px 0 0 #3a4048;
-}
-
-.rk-knight-guard {
-  position: absolute;
-  left: 0;
-  top: 14px;
-  width: 18px;
-  height: 5px;
-  background: var(--gold);
-}
-
-.rk-knight-grip {
-  position: absolute;
-  left: 6px;
-  top: 4px;
-  width: 6px;
-  height: 12px;
-  background: #3a2a18;
-}
-
-.rk-knight-pommel {
-  position: absolute;
-  left: 4px;
-  top: 0;
-  width: 10px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gold-bright);
-}
-
-.rk-knight-hips {
-  position: absolute;
-  left: 34px;
-  top: 84px;
-  width: 40px;
-  height: 14px;
-  background: var(--armor);
-  border: 1px solid var(--gold);
-  z-index: 3;
-}
-
-.rk-knight-leg {
-  position: absolute;
-  top: 96px;
-  width: 14px;
-  height: 36px;
-  background: var(--armor-mid);
-  border: 1px solid #1a1e22;
-  transform-origin: top center;
-  z-index: 3;
-}
-
-.rk-knight-leg--l {
-  left: 36px;
-}
-
-.rk-knight-leg--r {
-  left: 58px;
-}
-
-.rk-knight-boot {
-  position: absolute;
-  left: -2px;
-  bottom: -6px;
-  width: 18px;
-  height: 10px;
-  background: #1a1e22;
-  border-top: 2px solid var(--gold);
-}
-
-.rk-knight-sprite--idle .rk-knight-cloak {
-  animation: rk-cloak-idle 2.4s ease-in-out infinite;
-}
-
-.rk-knight-sprite--walk {
-  animation: rk-knight-bob 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-leg--l {
-  animation: rk-leg-l 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-leg--r {
-  animation: rk-leg-r 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-arm--front {
-  animation: rk-arm-swing 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-arm--back {
-  animation: rk-arm-swing-back 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-cloak {
-  animation: rk-cloak-walk 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--walk .rk-knight-sword {
-  animation: rk-sword-walk 0.4s steps(2) infinite;
-}
-
-.rk-knight-sprite--attack .rk-knight-arm--front,
-.rk-knight-sprite--attack .rk-knight-sword {
-  animation: rk-sword-attack 0.7s ease;
-}
-
-.rk-knight-sprite--attack {
-  animation: rk-knight-lunge 0.7s ease;
-}
-
-.rk-knight-sprite--hurt {
-  animation: rk-hurt-shake 0.45s ease;
-  filter: drop-shadow(0 0 10px rgba(255, 80, 80, 0.7));
-}
-
-.rk-knight-sprite--defeat {
-  transform: translateY(22px) rotate(-80deg);
-  transform-origin: 50% 90%;
-  opacity: 0.8;
-  transition: transform 0.55s ease, opacity 0.55s ease;
-}
-
-.rk-knight-sprite--defeat .rk-knight-sword {
-  transform: rotate(40deg) translate(8px, 10px);
-}
-
 /* ===== Enemy pixel sprites ===== */
 .rk-enemy-sprite {
   position: relative;
-  width: 96px;
-  height: 120px;
+  width: 110px;
+  height: 116px;
   image-rendering: pixelated;
 }
 
@@ -1272,58 +1046,6 @@
   to { right: 18%; }
 }
 
-@keyframes rk-knight-bob {
-  from { transform: translateY(0); }
-  to { transform: translateY(3px); }
-}
-
-@keyframes rk-leg-l {
-  from { transform: rotate(14deg) translateY(0); }
-  to { transform: rotate(-12deg) translateY(2px); }
-}
-
-@keyframes rk-leg-r {
-  from { transform: rotate(-12deg) translateY(2px); }
-  to { transform: rotate(14deg) translateY(0); }
-}
-
-@keyframes rk-arm-swing {
-  from { transform: rotate(-12deg); }
-  to { transform: rotate(10deg); }
-}
-
-@keyframes rk-arm-swing-back {
-  from { transform: rotate(10deg); }
-  to { transform: rotate(-12deg); }
-}
-
-@keyframes rk-cloak-idle {
-  0%, 100% { transform: skewX(0deg); }
-  50% { transform: skewX(-2deg); }
-}
-
-@keyframes rk-cloak-walk {
-  from { transform: skewX(4deg); }
-  to { transform: skewX(-4deg); }
-}
-
-@keyframes rk-sword-walk {
-  from { transform: rotate(-4deg); }
-  to { transform: rotate(4deg); }
-}
-
-@keyframes rk-sword-attack {
-  0% { transform: rotate(-10deg); }
-  35% { transform: rotate(55deg) translate(6px, -4px); }
-  100% { transform: rotate(-10deg); }
-}
-
-@keyframes rk-knight-lunge {
-  0% { transform: translateX(0); }
-  35% { transform: translateX(16px); }
-  100% { transform: translateX(0); }
-}
-
 @keyframes rk-enemy-idle {
   from { transform: translateY(0); }
   to { transform: translateY(3px); }
@@ -1339,12 +1061,6 @@
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   60% { transform: translateY(28px) rotate(70deg); opacity: 0.9; }
   100% { transform: translateY(48px) rotate(90deg); opacity: 0; }
-}
-
-@keyframes rk-hurt-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
 }
 
 @keyframes rk-slash-fx {
@@ -1412,17 +1128,11 @@
 @media (prefers-reduced-motion: reduce) {
   .rk-scene--scroll .rk-scene__backdrop-track,
   .rk-scene--scroll .rk-scene__decor,
-  .rk-knight-sprite--walk,
-  .rk-knight-sprite--walk .rk-knight-leg--l,
-  .rk-knight-sprite--walk .rk-knight-leg--r,
-  .rk-knight-sprite--walk .rk-knight-arm--front,
-  .rk-knight-sprite--walk .rk-knight-arm--back,
-  .rk-knight-sprite--walk .rk-knight-cloak,
-  .rk-knight-sprite--walk .rk-knight-sword,
-  .rk-knight-sprite--idle .rk-knight-cloak,
+  .rk-scene__knight-slot,
   .rk-enemy-sprite--idle,
   .rk-enemy-sprite--approach,
   .rk-torch::after {
     animation: none !important;
+    transition: none !important;
   }
 }
