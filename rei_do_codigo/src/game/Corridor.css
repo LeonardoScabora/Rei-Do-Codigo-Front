@@ -449,11 +449,30 @@
 }
 
 .rk-scene:not(.rk-scene--scroll) .rk-scene__backdrop-img:first-child {
-  width: auto;
+  width: 100%;
   height: 100%;
-  min-width: 100%;
   object-fit: cover;
   object-position: center bottom;
+}
+
+.rk-scene--arena .rk-scene__backdrop {
+  background-color: #120810;
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+}
+
+.rk-scene--arena .rk-scene__backdrop-track {
+  width: 100%;
+  height: 100%;
+}
+
+.rk-scene--arena .rk-scene__backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  image-rendering: auto;
 }
 
 .rk-scene:not(.rk-scene--scroll) .rk-scene__backdrop-img:last-child {
@@ -601,13 +620,24 @@
   border-top: 3px solid #5c9c50;
 }
 
-/* scroll da caminhada */
+/* scroll da caminhada — duração sincronizada com a walk do cavaleiro */
 .rk-scene--scroll .rk-scene__backdrop-track {
-  animation: rk-scroll-backdrop 12s linear infinite;
+  animation: rk-scroll-backdrop var(--rk-scroll-ms, 3200ms) linear infinite;
+  animation-play-state: paused;
+}
+
+.rk-scene--scroll-active .rk-scene__backdrop-track {
+  animation: rk-scroll-backdrop var(--rk-scroll-ms, 3200ms) linear infinite;
+  animation-play-state: running;
 }
 
 .rk-scene--scroll .rk-scene__decor {
-  animation: rk-scroll-decor 9s linear infinite;
+  animation: rk-scroll-decor calc(var(--rk-scroll-ms, 3200ms) * 0.82) linear infinite;
+  animation-play-state: paused;
+}
+
+.rk-scene--scroll-active .rk-scene__decor {
+  animation-play-state: running;
 }
 
 .rk-scene__actors {
@@ -631,6 +661,31 @@
   bottom: 26%;
   overflow: visible;
   z-index: 2;
+}
+
+.rk-scene--arena .rk-scene__knight-slot,
+.rk-scene--arena .rk-scene__enemy-slot {
+  bottom: var(--rk-actor-feet-y, 18%);
+}
+
+.rk-scene--arena .rk-knight-visual,
+.rk-scene--arena .rk-enemy-visual {
+  height: 168px;
+}
+
+/* Linha do chão compartilhada: pés do cavaleiro e do goblin no mesmo Y */
+.rk-scene--arena {
+  --rk-actor-feet-y: 18%;
+}
+
+.rk-scene__knight-slot--entering {
+  left: -38%;
+  animation: rk-knight-enter var(--rk-walk-ms, 3.2s) ease-out forwards;
+}
+
+.rk-scene__knight-slot--exiting {
+  left: 14%;
+  animation: rk-knight-exit var(--rk-walk-ms, 3.2s) ease-in forwards;
 }
 
 .rk-scene__knight-move {
@@ -686,27 +741,132 @@
     drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
 }
 
-.rk-scene__enemy-slot {
-  position: absolute;
-  bottom: 26%;
-  width: min(160px, 22vw);
+/* ===== Goblin sprite sheets (1º inimigo) ===== */
+.rk-enemy-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
+}
+
+.rk-enemy-stack--goblin {
+  position: relative;
+  width: 180px;
+  gap: 0;
+}
+
+/* Ancora a barra logo acima da cabeça (pés no chão + altura do personagem + folga) */
+.rk-enemy-stack--goblin .rk-scene__hp--enemy {
+  position: absolute;
+  left: 50%;
+  bottom: 102px;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 3;
+  white-space: nowrap;
+}
+
+.rk-enemy-visual {
+  position: relative;
+  width: 180px;
+  height: 168px;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.rk-enemy-visual .rk-enemy-sprite {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.rk-goblin-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--rk-goblin-size, 375px);
+  height: var(--rk-goblin-size, 375px);
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+.rk-goblin-wrap--run,
+.rk-goblin-wrap--attack {
+  transform: translateX(-50%) scale(1.08);
+}
+
+.rk-goblin-wrap--flipped {
+  transform: translateX(-50%) scaleX(-1);
+}
+
+.rk-goblin-wrap--flipped.rk-goblin-wrap--run,
+.rk-goblin-wrap--flipped.rk-goblin-wrap--attack {
+  transform: translateX(-50%) scaleX(-1) scale(1.08);
+}
+
+.rk-goblin-sprite {
+  --rk-goblin-size: 375px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--rk-goblin-size);
+  height: var(--rk-goblin-size);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+}
+
+.rk-goblin-sprite--hurt {
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
+    brightness(1.25);
+}
+
+.rk-goblin-sprite--death {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
+
+.rk-scene__enemy-slot {
+  position: absolute;
+  bottom: 26%;
+  width: min(200px, 24vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   right: 18%;
-  transition: right 0.2s linear;
 }
 
 .rk-scene__enemy-slot--walking {
-  right: -20%;
-  animation: rk-enemy-approach 3.2s ease-out forwards;
+  right: -38%;
+  animation: rk-enemy-approach var(--rk-walk-ms, 3.2s) ease-out forwards;
+}
+
+.rk-scene__enemy-slot--walking.rk-scene__enemy-slot--scroll-wait {
+  right: -38%;
+  animation: none;
 }
 
 .rk-scene__enemy-slot--dialogue,
 .rk-scene__enemy-slot--battle,
-.rk-scene__enemy-slot--enemy_fall {
+.rk-scene__enemy-slot--enemy_fall,
+.rk-scene__enemy-slot--ended {
   right: 18%;
+}
+
+.rk-scene__enemy-slot--charge {
+  right: 18%;
+  animation: rk-goblin-charge var(--rk-goblin-charge-ms, 720ms) ease-out forwards;
+}
+
+.rk-scene__enemy-slot--at-knight {
+  right: 52%;
+}
+
+.rk-scene__enemy-slot--retreat {
+  right: 52%;
+  animation: rk-goblin-retreat var(--rk-goblin-retreat-ms, 720ms) ease-in forwards;
 }
 
 /* ===== Barra de vida (pílula) ===== */
@@ -774,6 +934,15 @@
   z-index: 3;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 5, 0.78) 100%);
+}
+
+.rk-scene--compact .rk-scene--arena.rk-scene--dialogue .rk-scene__backdrop {
+  background-size: cover;
+  background-position: center 40%;
+}
+
+.rk-scene--arena .rk-scene__vignette {
+  background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 5, 0.42) 100%);
 }
 
 .rk-scene--compact .rk-scene__knight-slot {
@@ -1033,8 +1202,9 @@
 
 /* ===== Animations ===== */
 @keyframes rk-scroll-backdrop {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  0% { transform: translateX(0); }
+  6% { transform: translateX(-2.5%); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes rk-scroll-decor {
@@ -1042,8 +1212,33 @@
   to { transform: translateX(-100%); }
 }
 
+@keyframes rk-knight-enter {
+  from { left: -22%; }
+  to { left: 14%; }
+}
+
+@keyframes rk-knight-enter {
+  from { left: -38%; }
+  to { left: 14%; }
+}
+
+@keyframes rk-knight-exit {
+  from { left: 14%; }
+  to { left: 108%; }
+}
+
+@keyframes rk-goblin-charge {
+  from { right: 18%; }
+  to { right: 52%; }
+}
+
+@keyframes rk-goblin-retreat {
+  from { right: 52%; }
+  to { right: 18%; }
+}
+
 @keyframes rk-enemy-approach {
-  from { right: -22%; }
+  from { right: -38%; }
   to { right: 18%; }
 }
 
@@ -1129,11 +1324,16 @@
 @media (prefers-reduced-motion: reduce) {
   .rk-scene--scroll .rk-scene__backdrop-track,
   .rk-scene--scroll .rk-scene__decor,
-  .rk-scene__knight-slot,
   .rk-enemy-sprite--idle,
   .rk-enemy-sprite--approach,
   .rk-torch::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .rk-scene__knight-slot--entering,
+  .rk-scene__knight-slot--exiting,
+  .rk-scene__enemy-slot--walking {
+    animation-duration: 0.01ms !important;
   }
 }

@@ -47,7 +47,6 @@ function textoAlternativa(pergunta: Pergunta, alt: Alternativa): string {
 
 export default function QuizBattle({
   batalha,
-  totalPerguntas,
   onAtualizarBatalha,
   disabled = false,
 }: Props) {
@@ -130,8 +129,6 @@ export default function QuizBattle({
   const podeResponder =
     batalha.status === "EM_ANDAMENTO" && !carregando && !enviando && !disabled && !aguardandoAvancar;
 
-  const numeroPergunta = Math.min(rodada + 1, totalPerguntas ?? rodada + 1);
-
   return (
     <div className="rk-side-panel">
       <div className="rk-quiz-emblem" aria-hidden>
@@ -139,11 +136,6 @@ export default function QuizBattle({
       </div>
 
       <p className="rk-quiz-ribbon">Quiz · {batalha.nomeInimigo}</p>
-
-      <p className="rk-quiz-counter">
-        Pergunta {numeroPergunta}
-        {totalPerguntas ? `/${totalPerguntas}` : ""}
-      </p>
 
       {carregando && <p className="rk-hint">Carregando pergunta...</p>}
       {erro && <p className="rk-error">{erro}</p>}

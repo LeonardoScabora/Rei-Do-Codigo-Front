@@ -6,6 +6,7 @@ import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
+export type EnemyMovePhase = "none" | "charge" | "atKnight" | "retreat";
 
 type BlastPoint = { x: number; y: number };
 
@@ -16,11 +17,22 @@ type Props = {
   enemyVisible: boolean;
   knightPose: KnightPose;
   enemyPose: EnemyPose;
+  enemyFlipped?: boolean;
+  enemyMovePhase?: EnemyMovePhase;
+  onEnemyAnimationComplete?: () => void;
+  onEnemyAttackComplete?: () => void;
   vidaJogador?: number;
   vidaInimigo?: number;
   compact?: boolean;
   energyBlast?: boolean;
   onEnergyBlastHit?: () => void;
+  /** Primeiro inimigo: fundo estático da arena + entrada lateral dos atores. */
+  arenaPrimeiroInimigo?: boolean;
+  knightEntering?: boolean;
+  knightExiting?: boolean;
+  enemyScrollWaiting?: boolean;
+  scrollActive?: boolean;
+  walkDurationMs?: number;
 };
 
 /**
@@ -34,11 +46,21 @@ export default function CorridorScene({
   enemyVisible,
   knightPose,
   enemyPose,
+  enemyFlipped = false,
+  enemyMovePhase = "none",
+  onEnemyAnimationComplete,
+  onEnemyAttackComplete,
   vidaJogador,
   vidaInimigo,
   compact = false,
   energyBlast = false,
   onEnergyBlastHit,
+  arenaPrimeiroInimigo = false,
+  knightEntering = false,
+  knightExiting = false,
+  enemyScrollWaiting = false,
+  scrollActive = false,
+  walkDurationMs = 3200,
 }: Props) {
   const actorsRef = useRef<HTMLDivElement>(null);
   const knightVisualRef = useRef<HTMLDivElement>(null);
@@ -75,17 +97,52 @@ export default function CorridorScene({
     setBlastPoints(measureBlastPoints());
   }, [energyBlast, measureBlastPoints]);
 
+  const backgroundSrc = arenaPrimeiroInimigo
+    ? "/game/fundo-corredor-completo.png"
+    : "/game/fundo-corredor.png";
+
+  const sceneStyle = {
+    "--rk-walk-ms": `${walkDurationMs}ms`,
+    "--rk-scroll-ms": `${walkDurationMs}ms`,
+    "--rk-goblin-charge-ms": "720ms",
+    "--rk-goblin-retreat-ms": "720ms",
+  } as React.CSSProperties;
+
+  const sceneClass = [
+    "rk-scene",
+    compact && "rk-scene--compact",
+    scrolling && "rk-scene--scroll",
+    scrollActive && "rk-scene--scroll-active",
+    arenaPrimeiroInimigo && "rk-scene--arena",
+    mode === "dialogue" && "rk-scene--dialogue",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const arenaBackdropStyle = arenaPrimeiroInimigo
+    ? {
+        backgroundImage: `url("${backgroundSrc}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center 40%",
+        backgroundRepeat: "no-repeat",
+      }
+    : undefined;
+
   return (
-    <div className={`rk-scene${compact ? " rk-scene--compact" : ""}${scrolling ? " rk-scene--scroll" : ""}`}>
-      <div className="rk-scene__backdrop" aria-hidden>
-        <div className="rk-scene__backdrop-track">
-          <img className="rk-scene__backdrop-img" src="/game/fundo-corredor.png" alt="" draggable={false} />
-          <img className="rk-scene__backdrop-img" src="/game/fundo-corredor.png" alt="" draggable={false} />
-        </div>
+    <div className={sceneClass} style={sceneStyle}>
+      <div className="rk-scene__backdrop" aria-hidden style={arenaBackdropStyle}>
+        {!arenaPrimeiroInimigo && (
+          <div className="rk-scene__backdrop-track">
+            <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
+            <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
+          </div>
+        )}
       </div>
 
       <div ref={actorsRef} className="rk-scene__actors">
-        <div className="rk-scene__knight-slot">
+        <div
+          className={`rk-scene__knight-slot${knightEntering ? " rk-scene__knight-slot--entering" : ""}${knightExiting ? " rk-scene__knight-slot--exiting" : ""}`}
+        >
           <div className="rk-scene__knight-move">
             <div className="rk-knight-stack">
               {mode === "battle" && typeof vidaJogador === "number" && (
@@ -103,23 +160,45 @@ export default function CorridorScene({
         {inimigo && enemyVisible && (
           <div
             ref={enemySlotRef}
-            className={`rk-scene__enemy-slot rk-scene__enemy-slot--${mode}`}
+            className={[
+              "rk-scene__enemy-slot",
+              `rk-scene__enemy-slot--${mode}`,
+              enemyScrollWaiting && "rk-scene__enemy-slot--scroll-wait",
+              enemyMovePhase === "charge" && "rk-scene__enemy-slot--charge",
+              enemyMovePhase === "atKnight" && "rk-scene__enemy-slot--at-knight",
+              enemyMovePhase === "retreat" && "rk-scene__enemy-slot--retreat",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
-            {mode === "battle" && typeof vidaInimigo === "number" && (
-              <div className="rk-scene__hp rk-scene__hp--enemy">
-                <VidasBar
-                  label={inimigo.nome}
-                  atual={vidaInimigo}
-                  maxima={inimigo.vidaMaxima}
-                  variante="inimigo"
+            <div
+              className={`rk-enemy-stack${
+                !inimigo.ehRei && inimigo.nome.toLowerCase().includes("goblin")
+                  ? " rk-enemy-stack--goblin"
+                  : ""
+              }`}
+            >
+              {mode === "battle" && typeof vidaInimigo === "number" && (
+                <div className="rk-scene__hp rk-scene__hp--enemy">
+                  <VidasBar
+                    label={inimigo.nome}
+                    atual={vidaInimigo}
+                    maxima={inimigo.vidaMaxima}
+                    variante="inimigo"
+                  />
+                </div>
+              )}
+              <div className="rk-enemy-visual">
+                <EnemySprite
+                  nome={inimigo.nome}
+                  ehRei={inimigo.ehRei}
+                  pose={enemyPose}
+                  flipped={enemyFlipped}
+                  onAnimationComplete={onEnemyAnimationComplete}
+                  onAttackComplete={onEnemyAttackComplete}
                 />
               </div>
-            )}
-            <EnemySprite
-              nome={inimigo.nome}
-              ehRei={inimigo.ehRei}
-              pose={enemyPose}
-            />
+            </div>
           </div>
         )}
 
