@@ -12,11 +12,10 @@ type Props = {
 const CHARGE2_FRAMES = 9;
 const CHARGE2_FRAME_W = 64;
 const CHARGE2_FRAME_H = 128;
-const CHARGE2_FRAME_MS = 95;
-const CHARGE2_DASHES = 6;
-const CHARGE2_STAGGER_MS = 120;
-const CHARGE2_DISPLAY_W = 88;
-const CHARGE2_DISPLAY_H = 176;
+const CHARGE2_FRAME_MS = 70;
+const CHARGE2_TRAVEL_MS = 720;
+const CHARGE2_DISPLAY_W = 96;
+const CHARGE2_DISPLAY_H = 96;
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
@@ -26,10 +25,15 @@ function lerpPoint(a: Point, b: Point, t: number): Point {
   return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) };
 }
 
-/** Magia do mago: após o Attack, o Charge2 segue em tracejado até o cavaleiro. */
+function framePosition(frameIndex: number, sheetFrames: number): string {
+  const x = sheetFrames <= 1 ? 0 : (frameIndex / (sheetFrames - 1)) * 100;
+  return `${x}% 50%`;
+}
+
+/** Magia do mago: um único projétil Charge2 viaja até o cavaleiro, como um tiro. */
 export default function MageMagic({ from, to, onHit, onComplete }: Props) {
-  const [trailBorn, setTrailBorn] = useState(0);
-  const [trailFrame, setTrailFrame] = useState(0);
+  const [pos, setPos] = useState(from);
+  const [frame, setFrame] = useState(0);
   const hitSentRef = useRef(false);
   const completeSentRef = useRef(false);
   const onHitRef = useRef(onHit);
@@ -43,82 +47,72 @@ export default function MageMagic({ from, to, onHit, onComplete }: Props) {
   useEffect(() => {
     hitSentRef.current = false;
     completeSentRef.current = false;
-    setTrailBorn(1);
-    setTrailFrame(0);
-
-    let born = 1;
-    const spawnId = window.setInterval(() => {
-      born += 1;
-      setTrailBorn(born);
-      if (born >= CHARGE2_DASHES) {
-        window.clearInterval(spawnId);
-        if (!hitSentRef.current) {
-          hitSentRef.current = true;
-          onHitRef.current?.();
-        }
-      }
-    }, CHARGE2_STAGGER_MS);
+    setPos(from);
+    setFrame(0);
 
     let frameTick = 0;
-    const trailDuration =
-      (CHARGE2_DASHES - 1) * CHARGE2_STAGGER_MS + CHARGE2_FRAMES * CHARGE2_FRAME_MS;
     const frameId = window.setInterval(() => {
       frameTick += 1;
-      setTrailFrame(Math.min(frameTick, CHARGE2_FRAMES - 1));
+      setFrame(frameTick % CHARGE2_FRAMES);
     }, CHARGE2_FRAME_MS);
-    const doneId = window.setTimeout(() => {
+
+    const start = performance.now();
+    let raf = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / CHARGE2_TRAVEL_MS);
+      setPos(lerpPoint(from, to, progress));
+
+      if (progress >= 0.96 && !hitSentRef.current) {
+        hitSentRef.current = true;
+        onHitRef.current?.();
+      }
+
+      if (progress < 1) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+
+      window.clearInterval(frameId);
       if (!completeSentRef.current) {
         completeSentRef.current = true;
         onCompleteRef.current?.();
       }
-    }, trailDuration);
+    };
+
+    raf = requestAnimationFrame(tick);
 
     return () => {
-      window.clearInterval(spawnId);
       window.clearInterval(frameId);
-      window.clearTimeout(doneId);
+      cancelAnimationFrame(raf);
     };
   }, [from, to]);
 
-  const charge2Scale = CHARGE2_DISPLAY_H / CHARGE2_FRAME_H;
-  const charge2SheetW = CHARGE2_FRAME_W * CHARGE2_FRAMES * charge2Scale;
-
   return (
-    <>
-      {Array.from({ length: trailBorn }, (_, i) => {
-        const t = CHARGE2_DASHES <= 1 ? 1 : i / (CHARGE2_DASHES - 1);
-        const pos = lerpPoint(from, to, t);
-        const dashFrame = Math.min(trailFrame, CHARGE2_FRAMES - 1);
-        return (
-          <div
-            key={i}
-            className="rk-mage-trail"
-            aria-hidden
-            style={{
-              left: pos.x,
-              top: pos.y,
-              width: CHARGE2_DISPLAY_W,
-              height: CHARGE2_DISPLAY_H,
-              opacity: 0.45 + (i / Math.max(1, CHARGE2_DASHES - 1)) * 0.55,
-            }}
-          >
-            <div
-              className="rk-mage-trail__sheet"
-              style={{
-                width: CHARGE2_DISPLAY_W,
-                height: CHARGE2_DISPLAY_H,
-                backgroundImage: "url(/game/mage/charge2.png)",
-                backgroundSize: `${charge2SheetW}px ${CHARGE2_DISPLAY_H}px`,
-                backgroundPosition: `-${Math.round(dashFrame * CHARGE2_FRAME_W * charge2Scale)}px center`,
-              }}
-            />
-          </div>
-        );
-      })}
-    </>
+    <div
+      className="rk-mage-bolt"
+      aria-hidden
+      style={{
+        left: pos.x,
+        top: pos.y,
+        width: CHARGE2_DISPLAY_W,
+        height: CHARGE2_DISPLAY_H,
+      }}
+    >
+      <div
+        className="rk-mage-bolt__sheet"
+        style={{
+          width: CHARGE2_DISPLAY_W,
+          height: CHARGE2_DISPLAY_H,
+          backgroundImage: "url(/game/mage/charge2.png)",
+          backgroundSize: `${CHARGE2_FRAMES * 100}% 200%`,
+          backgroundPosition: framePosition(frame, CHARGE2_FRAMES),
+        }}
+      />
+    </div>
   );
 }
 
 export const MAGE_MAGIC_MS = {
-  charge2: (CHARGE2_DASHES - 1) * CHARGE2_STAGGER_MS + CHARGE2_FRAMES * CHARGE2_FRAME_MS,
+  charge2: CHARGE2_TRAVEL_MS,
 } as const;

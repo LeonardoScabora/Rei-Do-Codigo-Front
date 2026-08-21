@@ -5,7 +5,7 @@ import EnemyKnightSprite, {
   ENEMY_KNIGHT_ANIM_MS,
   ENEMY_KNIGHT_ATTACK_HIT_MS,
 } from "./EnemyKnightSprite";
-import MageSprite, { type MagePose, MAGE_ANIM_MS } from "./MageSprite";
+import MageSprite, { type MagePose, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS } from "./MageSprite";
 import type { EnemyMovePhase } from "../CorridorScene";
 
 export type EnemyPose = "idle" | "approach" | "attack" | "hurt" | "fall";
@@ -29,6 +29,7 @@ export {
   ENEMY_KNIGHT_ANIM_MS,
   ENEMY_KNIGHT_ATTACK_HIT_MS,
   MAGE_ANIM_MS,
+  MAGE_ATTACK_SHOT_MS,
 };
 
 /** Sprite do inimigo: goblin, esqueleto, cavaleiro e mago usam sheets; demais usam pixel art procedural. */

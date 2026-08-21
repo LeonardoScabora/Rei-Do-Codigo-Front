@@ -16,7 +16,7 @@ import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
-import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, type EnemyPose } from "./sprites/EnemySprite";
+import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS, type EnemyPose } from "./sprites/EnemySprite";
 import type { EnemyMovePhase } from "./CorridorScene";
 import {
   isCavaleiroInimigo,
@@ -392,7 +392,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     );
   }
 
-  /** Mago: Attack no idle → Charge2 em tracejado até o cavaleiro. */
+  /** Mago: Attack no idle; Charge2 sai no antepenúltimo quadro. */
   function iniciarAtaqueMago(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
@@ -400,9 +400,12 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setKnightPose("idle");
     pendingHitRef.current = { parcial, resultado };
 
+    enemyAttackTimer.current = window.setTimeout(() => {
+      setMageMagic(true);
+    }, MAGE_ATTACK_SHOT_MS);
+
     onEnemyAttackCompleteRef.current = () => {
       setEnemyPose("idle");
-      setMageMagic(true);
     };
   }
 

@@ -1017,17 +1017,17 @@
   filter: none;
 }
 
-.rk-mage-trail {
+.rk-mage-bolt {
   position: absolute;
-  margin-left: -44px;
-  margin-top: -88px;
+  margin-left: -48px;
+  margin-top: -48px;
   overflow: hidden;
   pointer-events: none;
   z-index: 5;
   transform: scaleX(-1);
 }
 
-.rk-mage-trail__sheet {
+.rk-mage-bolt__sheet {
   background-repeat: no-repeat;
   image-rendering: pixelated;
   image-rendering: crisp-edges;

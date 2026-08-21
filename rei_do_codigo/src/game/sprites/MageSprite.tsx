@@ -69,6 +69,11 @@ export const MAGE_ANIM_MS = {
   death: sheetSequence(SHEETS.death).length * SHEETS.death.frameMs,
 } as const;
 
+/** Antepenúltimo quadro do Attack: daí sai o projétil Charge2. */
+export const MAGE_ATTACK_SHOT_FRAME = sheetSequence(SHEETS.attack).length - 3;
+
+export const MAGE_ATTACK_SHOT_MS = MAGE_ATTACK_SHOT_FRAME * SHEETS.attack.frameMs;
+
 type Props = {
   pose?: MagePose;
   flipped?: boolean;
