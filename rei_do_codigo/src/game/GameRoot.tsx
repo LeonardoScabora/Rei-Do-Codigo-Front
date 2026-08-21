@@ -16,8 +16,15 @@ import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
-import { GOBLIN_ANIM_MS, type EnemyPose } from "./sprites/EnemySprite";
+import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, type EnemyPose } from "./sprites/EnemySprite";
 import type { EnemyMovePhase } from "./CorridorScene";
+import {
+  isCavaleiroInimigo,
+  isEsqueletoInimigo,
+  isGoblinInimigo,
+  usesMeleeChargeAttack,
+  usesSheetEnemyDeath,
+} from "./enemyKind";
 import "./Style.css";
 import "./Corridor.css";
 
@@ -36,15 +43,18 @@ type Fase =
   | "dialogue"
   | "battle"
   | "enemy_fall"
+  | "knight_fall"
   | "victory_final"
   | "defeat";
 
 const DIALOGO_PADRAO = "Voce nunca passara por mim verme!";
-const WALK_MS = 3200;
+const WALK_MS = 5000;
 const EXIT_MS = WALK_MS;
 const FALL_MS = 1400;
 const GOBLIN_CHARGE_MS = 720;
 const GOBLIN_RETREAT_MS = 720;
+const ENEMY_KNIGHT_CHARGE_MS = 1400;
+const ENEMY_KNIGHT_RETREAT_MS = 1400;
 const ATTACK_MS = KNIGHT_ANIM_MS.attack;
 const ATTACK_BLAST_MS = KNIGHT_ANIM_MS.attackBlast;
 const HURT_MS = KNIGHT_ANIM_MS.hurt;
@@ -85,7 +95,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const pendingCorridorEntrance = useRef(false);
   const pendingHitRef = useRef<{ parcial: Partial<Batalha>; resultado: ResultadoAcao } | null>(null);
   const inimigoAtualRef = useRef(inimigoAtual);
-  const onGoblinAttackCompleteRef = useRef<(() => void) | null>(null);
+  const onEnemyAttackCompleteRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     inimigoAtualRef.current = inimigoAtual;
@@ -105,7 +115,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     deathAdvanceTimer.current = null;
     corridorEntranceTimer.current = null;
     pendingHitRef.current = null;
-    onGoblinAttackCompleteRef.current = null;
+    onEnemyAttackCompleteRef.current = null;
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
     setEnergyBlast(false);
@@ -164,10 +174,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     }, EXIT_MS);
   }, []);
 
-  function isGoblinInimigo(inimigo: Inimigo | null) {
-    return Boolean(inimigo && !inimigo.ehRei && inimigo.nome.toLowerCase().includes("goblin"));
-  }
-
   function avancarAposMorteInimigo() {
     if (inimigoAtualRef.current?.ordemNoCorredor === 1) {
       iniciarSaidaArena();
@@ -184,8 +190,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   }, [fase, iniciarSaidaArena]);
 
   const handleEnemyAttackComplete = useCallback(() => {
-    onGoblinAttackCompleteRef.current?.();
-    onGoblinAttackCompleteRef.current = null;
+    onEnemyAttackCompleteRef.current?.();
+    onEnemyAttackCompleteRef.current = null;
   }, []);
 
   const handleCrownDone = useCallback(() => {
@@ -246,6 +252,20 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     }
   }
 
+  function iniciarDerrotaCavaleiro() {
+    setAnimandoHit(false);
+    setEnemyFlipped(false);
+    setEnemyMovePhase("none");
+    setEnemyPose("idle");
+    setKnightPose("defeat");
+    setFase("knight_fall");
+  }
+
+  const handleKnightDefeatComplete = useCallback(() => {
+    if (fase !== "knight_fall") return;
+    setFase("defeat");
+  }, [fase]);
+
   function finalizarAposAnimacao(resultado: ResultadoAcao) {
     setAnimandoHit(false);
     setEnemyFlipped(false);
@@ -256,7 +276,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       setEnemyPose("fall");
       setFase("enemy_fall");
 
-      if (!isGoblinInimigo(inimigoAtualRef.current)) {
+      if (!usesSheetEnemyDeath(inimigoAtualRef.current)) {
         deathAdvanceTimer.current = window.setTimeout(() => {
           avancarAposMorteInimigo();
         }, FALL_MS);
@@ -265,9 +285,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     }
 
     if (resultado.status === "DERROTA") {
-      setKnightPose("defeat");
-      setEnemyPose("idle");
-      setFase("defeat");
+      iniciarDerrotaCavaleiro();
       return;
     }
 
@@ -275,34 +293,98 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setEnemyPose("idle");
   }
 
-  function iniciarAtaqueGoblin(resultado: ResultadoAcao) {
+  function msRecuperacaoAposGolpe(attackMs: number, hitMs: number): number {
+    return Math.max(0, hitMs + HURT_MS - attackMs);
+  }
+
+  function ligarImpactoDoAtaqueInimigo(
+    parcial: Partial<Batalha>,
+    resultado: ResultadoAcao,
+    hitMs: number,
+    attackMs: number,
+    retreatMs: number,
+  ) {
+    hitTimer.current = window.setTimeout(() => {
+      setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
+      setKnightPose("hurt");
+    }, hitMs);
+
+    onEnemyAttackCompleteRef.current = () => {
+      hitTimer.current = window.setTimeout(() => {
+        if (resultado.status === "DERROTA") {
+          iniciarDerrotaCavaleiro();
+          return;
+        }
+
+        setKnightPose("idle");
+        setEnemyFlipped(true);
+        setEnemyMovePhase("retreat");
+        setEnemyPose("approach");
+
+        enemyAttackTimer.current = window.setTimeout(() => {
+          setEnemyFlipped(false);
+          setEnemyMovePhase("none");
+          setEnemyPose("idle");
+          finalizarAposAnimacao(resultado);
+        }, retreatMs);
+      }, msRecuperacaoAposGolpe(attackMs, hitMs));
+    };
+  }
+
+  function iniciarAtaqueMelee(
+    parcial: Partial<Batalha>,
+    resultado: ResultadoAcao,
+    chargeMs: number,
+    retreatMs: number,
+    hitMs: number,
+    attackMs: number,
+  ) {
     setEnemyFlipped(false);
     setEnemyMovePhase("charge");
     setEnemyPose("approach");
     setKnightPose("idle");
 
-    enemyAttackTimer.current = window.setTimeout(() => {
+    const iniciarGolpe = () => {
       setEnemyMovePhase("atKnight");
       setEnemyPose("attack");
+      ligarImpactoDoAtaqueInimigo(parcial, resultado, hitMs, attackMs, retreatMs);
+    };
 
-      onGoblinAttackCompleteRef.current = () => {
-        setKnightPose("hurt");
+    enemyAttackTimer.current = window.setTimeout(iniciarGolpe, chargeMs);
+  }
 
-        hitTimer.current = window.setTimeout(() => {
-          setKnightPose("idle");
-          setEnemyFlipped(true);
-          setEnemyMovePhase("retreat");
-          setEnemyPose("approach");
+  function iniciarAtaqueGoblin(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
+    iniciarAtaqueMelee(
+      parcial,
+      resultado,
+      GOBLIN_CHARGE_MS,
+      GOBLIN_RETREAT_MS,
+      GOBLIN_ATTACK_HIT_MS,
+      GOBLIN_ANIM_MS.attack,
+    );
+  }
 
-          enemyAttackTimer.current = window.setTimeout(() => {
-            setEnemyFlipped(false);
-            setEnemyMovePhase("none");
-            setEnemyPose("idle");
-            finalizarAposAnimacao(resultado);
-          }, GOBLIN_RETREAT_MS);
-        }, HURT_MS);
-      };
-    }, GOBLIN_CHARGE_MS);
+  function iniciarAtaqueEsqueleto(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
+    iniciarAtaqueMelee(
+      parcial,
+      resultado,
+      GOBLIN_CHARGE_MS,
+      GOBLIN_RETREAT_MS,
+      SKELETON_ATTACK_HIT_MS,
+      SKELETON_ANIM_MS.attack,
+    );
+  }
+
+  /** Cavaleiro inimigo: Run (charge) → Attack no cavaleiro → Run espelhado (retreat). */
+  function iniciarAtaqueCavaleiroInimigo(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
+    iniciarAtaqueMelee(
+      parcial,
+      resultado,
+      ENEMY_KNIGHT_CHARGE_MS,
+      ENEMY_KNIGHT_RETREAT_MS,
+      ENEMY_KNIGHT_ATTACK_HIT_MS,
+      ENEMY_KNIGHT_ANIM_MS.attack,
+    );
   }
 
   const resolverImpactoEnergia = useCallback(() => {
@@ -314,7 +396,13 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setBatalha((atual) => (atual ? { ...atual, ...pending.parcial } : atual));
     setEnemyPose("hurt");
 
-    const hurtMs = isGoblinInimigo(inimigoAtualRef.current) ? GOBLIN_ANIM_MS.hurt : HURT_MS;
+    const hurtMs = isGoblinInimigo(inimigoAtualRef.current)
+      ? GOBLIN_ANIM_MS.hurt
+      : isEsqueletoInimigo(inimigoAtualRef.current)
+        ? SKELETON_ANIM_MS.hurt
+        : isCavaleiroInimigo(inimigoAtualRef.current)
+          ? ENEMY_KNIGHT_ANIM_MS.hurt
+          : HURT_MS;
     hitTimer.current = window.setTimeout(() => {
       finalizarAposAnimacao(pending.resultado);
     }, hurtMs);
@@ -328,7 +416,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     if (attackEndTimer.current) window.clearTimeout(attackEndTimer.current);
     if (enemyAttackTimer.current) window.clearTimeout(enemyAttackTimer.current);
     pendingHitRef.current = null;
-    onGoblinAttackCompleteRef.current = null;
+    onEnemyAttackCompleteRef.current = null;
     setEnergyBlast(false);
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
@@ -349,15 +437,24 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       return;
     }
 
-    // Errou: goblin corre, ataca e volta; demais inimigos só atacam no lugar.
-    setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
+    // Errou: dano do jogador só quando o sprite de ataque do inimigo começa.
+    if (isCavaleiroInimigo(inimigoAtual)) {
+      iniciarAtaqueCavaleiroInimigo(parcial, resultado);
+      return;
+    }
 
     if (isGoblinInimigo(inimigoAtual)) {
-      iniciarAtaqueGoblin(resultado);
+      iniciarAtaqueGoblin(parcial, resultado);
+      return;
+    }
+
+    if (isEsqueletoInimigo(inimigoAtual)) {
+      iniciarAtaqueEsqueleto(parcial, resultado);
       return;
     }
 
     setEnemyPose("attack");
+    setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
     setKnightPose("hurt");
 
     hitTimer.current = window.setTimeout(() => {
@@ -389,8 +486,10 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
         ? "dialogue"
         : fase === "battle"
           ? "battle"
-          : fase === "enemy_fall"
-            ? "enemy_fall"
+        : fase === "enemy_fall"
+          ? "enemy_fall"
+          : fase === "knight_fall"
+            ? "battle"
             : "ended";
 
   const isPrimeiroInimigo = inimigoAtual?.ordemNoCorredor === 1;
@@ -408,12 +507,19 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       fase === "walking" ||
       fase === "dialogue" ||
       fase === "battle" ||
+      fase === "knight_fall" ||
       fase === "enemy_fall" ||
       (fase === "knight_exit_arena" && enemyPose === "fall"));
   const emBatalha = fase === "battle" && batalha;
   const painelDireito = emBatalha || fase === "enemy_fall";
   const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
   const vidaAtual = batalha?.vidaJogador ?? 3;
+  const enemyChargeMs = isCavaleiroInimigo(inimigoAtual)
+    ? ENEMY_KNIGHT_CHARGE_MS
+    : GOBLIN_CHARGE_MS;
+  const enemyRetreatMs = isCavaleiroInimigo(inimigoAtual)
+    ? ENEMY_KNIGHT_RETREAT_MS
+    : GOBLIN_RETREAT_MS;
 
   return (
     <div className={`rk-game-root${painelDireito ? " rk-game-root--split" : ""}`}>
@@ -450,14 +556,15 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             inimigo={inimigoAtual}
             enemyVisible={enemyVisible}
             knightPose={knightPose}
+            onKnightDefeatComplete={handleKnightDefeatComplete}
             enemyPose={enemyPose}
             enemyFlipped={enemyFlipped}
             enemyMovePhase={enemyMovePhase}
             onEnemyAnimationComplete={
-              isGoblinInimigo(inimigoAtual) ? handleEnemyDeathComplete : undefined
+              usesSheetEnemyDeath(inimigoAtual) ? handleEnemyDeathComplete : undefined
             }
             onEnemyAttackComplete={
-              isGoblinInimigo(inimigoAtual) ? handleEnemyAttackComplete : undefined
+              usesMeleeChargeAttack(inimigoAtual) ? handleEnemyAttackComplete : undefined
             }
             vidaJogador={batalha?.vidaJogador}
             vidaInimigo={batalha?.vidaInimigo}
@@ -470,6 +577,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             enemyScrollWaiting={enemyScrollWaiting}
             scrollActive={scrollActive}
             walkDurationMs={knightExiting ? EXIT_MS : WALK_MS}
+            enemyChargeMs={enemyChargeMs}
+            enemyRetreatMs={enemyRetreatMs}
           />
 
           {fase === "dialogue" && inimigoAtual && (

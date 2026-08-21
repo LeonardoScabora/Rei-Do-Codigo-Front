@@ -622,17 +622,17 @@
 
 /* scroll da caminhada — duração sincronizada com a walk do cavaleiro */
 .rk-scene--scroll .rk-scene__backdrop-track {
-  animation: rk-scroll-backdrop var(--rk-scroll-ms, 3200ms) linear infinite;
+  animation: rk-scroll-backdrop var(--rk-scroll-ms, 5000ms) linear infinite;
   animation-play-state: paused;
 }
 
 .rk-scene--scroll-active .rk-scene__backdrop-track {
-  animation: rk-scroll-backdrop var(--rk-scroll-ms, 3200ms) linear infinite;
+  animation: rk-scroll-backdrop var(--rk-scroll-ms, 5000ms) linear infinite;
   animation-play-state: running;
 }
 
 .rk-scene--scroll .rk-scene__decor {
-  animation: rk-scroll-decor calc(var(--rk-scroll-ms, 3200ms) * 0.82) linear infinite;
+  animation: rk-scroll-decor calc(var(--rk-scroll-ms, 5000ms) * 0.88) linear infinite;
   animation-play-state: paused;
 }
 
@@ -680,12 +680,12 @@
 
 .rk-scene__knight-slot--entering {
   left: -38%;
-  animation: rk-knight-enter var(--rk-walk-ms, 3.2s) ease-out forwards;
+  animation: rk-knight-enter var(--rk-walk-ms, 5s) ease-out forwards;
 }
 
 .rk-scene__knight-slot--exiting {
   left: 14%;
-  animation: rk-knight-exit var(--rk-walk-ms, 3.2s) ease-in forwards;
+  animation: rk-knight-exit var(--rk-walk-ms, 5s) ease-in forwards;
 }
 
 .rk-scene__knight-move {
@@ -733,11 +733,8 @@
 }
 
 .rk-knight-sprite--defeat {
-  opacity: 0.85;
-  transform: translateX(-26.2%) translateY(22px) rotate(-80deg);
-  transform-origin: 50% 90%;
   filter:
-    grayscale(0.35)
+    grayscale(0.15)
     drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
 }
 
@@ -828,6 +825,155 @@
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
 }
 
+/* ===== Skeleton warrior sprites (2º inimigo) ===== */
+.rk-enemy-stack--skeleton {
+  position: relative;
+  width: 180px;
+  gap: 0;
+}
+
+.rk-enemy-stack--skeleton .rk-scene__hp--enemy {
+  position: absolute;
+  left: 50%;
+  bottom: 128px;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 3;
+  white-space: nowrap;
+}
+
+.rk-skeleton-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--rk-skeleton-size, 375px);
+  height: var(--rk-skeleton-size, 375px);
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+.rk-skeleton-wrap--run,
+.rk-skeleton-wrap--attack {
+  transform: translateX(-50%) scale(1.08);
+}
+
+.rk-skeleton-wrap--flipped {
+  transform: translateX(-50%) scaleX(-1);
+}
+
+.rk-skeleton-wrap--flipped.rk-skeleton-wrap--run,
+.rk-skeleton-wrap--flipped.rk-skeleton-wrap--attack {
+  transform: translateX(-50%) scaleX(-1) scale(1.08);
+}
+
+.rk-skeleton-sprite {
+  --rk-skeleton-size: 375px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--rk-skeleton-size);
+  height: var(--rk-skeleton-size);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+}
+
+.rk-skeleton-sprite--hurt {
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
+    brightness(1.25);
+}
+
+.rk-skeleton-sprite--death {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
+
+/* ===== Enemy knight sprites (3º inimigo — Cavaleiro das Condições) ===== */
+.rk-enemy-stack--enemy-knight {
+  position: relative;
+  width: 110px;
+  gap: 6px;
+}
+
+.rk-enemy-stack--enemy-knight .rk-enemy-visual {
+  width: 110px;
+  height: 168px;
+}
+
+.rk-enemy-stack--enemy-knight .rk-scene__hp--enemy {
+  position: absolute;
+  left: 50%;
+  bottom: 168px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 200px;
+  white-space: nowrap;
+}
+
+.rk-enemy-knight-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--rk-enemy-knight-size, 340px);
+  height: var(--rk-enemy-knight-size, 340px);
+  transform: translateX(-50%) scaleX(-1);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+.rk-enemy-knight-wrap--attack {
+  transform: translateX(-50%) scaleX(-1);
+}
+
+.rk-enemy-knight-wrap--flipped {
+  transform: translateX(-50%);
+}
+
+.rk-enemy-knight-sprite {
+  --rk-enemy-knight-size: 340px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--rk-enemy-knight-size);
+  height: var(--rk-enemy-knight-size);
+  /* espelha o offset do cavaleiro do jogador (corpo à esquerda do frame) */
+  transform: translateX(26.2%);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+}
+
+.rk-enemy-knight-sprite--hurt {
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
+    brightness(1.25);
+}
+
+.rk-enemy-knight-sprite--death {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
+
+.rk-enemy-arrow {
+  position: absolute;
+  margin-left: -48px;
+  margin-top: -12px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.rk-enemy-arrow img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: block;
+  max-width: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.65));
+}
+
 .rk-scene__enemy-slot {
   position: absolute;
   bottom: 26%;
@@ -840,7 +986,7 @@
 
 .rk-scene__enemy-slot--walking {
   right: -38%;
-  animation: rk-enemy-approach var(--rk-walk-ms, 3.2s) ease-out forwards;
+  animation: rk-enemy-approach var(--rk-walk-ms, 5s) ease-out forwards;
 }
 
 .rk-scene__enemy-slot--walking.rk-scene__enemy-slot--scroll-wait {
@@ -860,13 +1006,27 @@
   animation: rk-goblin-charge var(--rk-goblin-charge-ms, 720ms) ease-out forwards;
 }
 
-.rk-scene__enemy-slot--at-knight {
-  right: 52%;
+/* Cavaleiro inimigo: mesma curva e duração do retreat (espelhado). */
+.rk-scene__enemy-slot--charge-knight {
+  right: 18%;
+  animation: rk-goblin-charge-knight var(--rk-goblin-charge-ms, 1400ms) ease-in forwards;
+}
+
+.rk-scene__enemy-slot--at-knight,
+.rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight,
+.rk-scene__enemy-slot--battle.rk-scene__enemy-slot--at-knight {
+  right: var(--rk-enemy-at-knight-right, 52%);
+  animation: none;
 }
 
 .rk-scene__enemy-slot--retreat {
-  right: 52%;
+  right: var(--rk-enemy-at-knight-right, 52%);
   animation: rk-goblin-retreat var(--rk-goblin-retreat-ms, 720ms) ease-in forwards;
+}
+
+.rk-scene__enemy-slot--retreat-knight {
+  right: var(--rk-enemy-at-knight-right, 52%);
+  animation: rk-goblin-retreat-knight var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
 /* ===== Barra de vida (pílula) ===== */
@@ -952,6 +1112,21 @@
 .rk-scene--compact .rk-scene__enemy-slot {
   right: 8%;
   width: min(130px, 28%);
+}
+
+/* Batalha compacta: mantém charge/ataque/retreat do cavaleiro inimigo ao lado do jogador */
+.rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--charge-knight {
+  animation: rk-goblin-charge-knight-compact var(--rk-goblin-charge-ms, 1400ms) ease-in forwards;
+}
+
+.rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight {
+  right: var(--rk-enemy-at-knight-right, 52%);
+  animation: none;
+}
+
+.rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--retreat-knight {
+  right: var(--rk-enemy-at-knight-right, 52%);
+  animation: rk-goblin-retreat-knight-compact var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
 .rk-scene--compact .rk-pillar--l {
@@ -1202,19 +1377,13 @@
 
 /* ===== Animations ===== */
 @keyframes rk-scroll-backdrop {
-  0% { transform: translateX(0); }
-  6% { transform: translateX(-2.5%); }
-  100% { transform: translateX(-50%); }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes rk-scroll-decor {
   from { transform: translateX(0); }
   to { transform: translateX(-100%); }
-}
-
-@keyframes rk-knight-enter {
-  from { left: -22%; }
-  to { left: 14%; }
 }
 
 @keyframes rk-knight-enter {
@@ -1229,12 +1398,32 @@
 
 @keyframes rk-goblin-charge {
   from { right: 18%; }
-  to { right: 52%; }
+  to { right: var(--rk-enemy-at-knight-right, 52%); }
+}
+
+@keyframes rk-goblin-charge-knight {
+  from { right: 18%; }
+  to { right: var(--rk-enemy-at-knight-right, 52%); }
+}
+
+@keyframes rk-goblin-charge-knight-compact {
+  from { right: 8%; }
+  to { right: var(--rk-enemy-at-knight-right, 52%); }
 }
 
 @keyframes rk-goblin-retreat {
-  from { right: 52%; }
+  from { right: var(--rk-enemy-at-knight-right, 52%); }
   to { right: 18%; }
+}
+
+@keyframes rk-goblin-retreat-knight {
+  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: 18%; }
+}
+
+@keyframes rk-goblin-retreat-knight-compact {
+  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: 8%; }
 }
 
 @keyframes rk-enemy-approach {

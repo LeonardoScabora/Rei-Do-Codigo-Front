@@ -1,9 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Inimigo } from "../api";
 import CodeEnergyBlast from "./components/CodeEnergyBlast";
+import EnemyArrow from "./components/EnemyArrow";
 import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
+import { enemyStackClass, isCavaleiroInimigo } from "./enemyKind";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
 export type EnemyMovePhase = "none" | "charge" | "atKnight" | "retreat";
@@ -16,6 +18,7 @@ type Props = {
   inimigo: Inimigo | null;
   enemyVisible: boolean;
   knightPose: KnightPose;
+  onKnightDefeatComplete?: () => void;
   enemyPose: EnemyPose;
   enemyFlipped?: boolean;
   enemyMovePhase?: EnemyMovePhase;
@@ -26,6 +29,9 @@ type Props = {
   compact?: boolean;
   energyBlast?: boolean;
   onEnergyBlastHit?: () => void;
+  enemyArrow?: boolean;
+  onEnemyArrowHit?: () => void;
+  arrowDurationMs?: number;
   /** Primeiro inimigo: fundo estático da arena + entrada lateral dos atores. */
   arenaPrimeiroInimigo?: boolean;
   knightEntering?: boolean;
@@ -33,6 +39,8 @@ type Props = {
   enemyScrollWaiting?: boolean;
   scrollActive?: boolean;
   walkDurationMs?: number;
+  enemyChargeMs?: number;
+  enemyRetreatMs?: number;
 };
 
 /**
@@ -45,6 +53,7 @@ export default function CorridorScene({
   inimigo,
   enemyVisible,
   knightPose,
+  onKnightDefeatComplete,
   enemyPose,
   enemyFlipped = false,
   enemyMovePhase = "none",
@@ -55,17 +64,23 @@ export default function CorridorScene({
   compact = false,
   energyBlast = false,
   onEnergyBlastHit,
+  enemyArrow = false,
+  onEnemyArrowHit,
+  arrowDurationMs = 520,
   arenaPrimeiroInimigo = false,
   knightEntering = false,
   knightExiting = false,
   enemyScrollWaiting = false,
   scrollActive = false,
-  walkDurationMs = 3200,
+  walkDurationMs = 5000,
+  enemyChargeMs = 720,
+  enemyRetreatMs = 720,
 }: Props) {
   const actorsRef = useRef<HTMLDivElement>(null);
   const knightVisualRef = useRef<HTMLDivElement>(null);
   const enemySlotRef = useRef<HTMLDivElement>(null);
   const [blastPoints, setBlastPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
+  const [arrowPoints, setArrowPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
 
   const measureBlastPoints = useCallback(() => {
     const actors = actorsRef.current;
@@ -89,6 +104,28 @@ export default function CorridorScene({
     };
   }, []);
 
+  const measureArrowPoints = useCallback(() => {
+    const actors = actorsRef.current;
+    const knight = knightVisualRef.current;
+    const enemy = enemySlotRef.current;
+    if (!actors || !knight || !enemy) return null;
+
+    const actorsRect = actors.getBoundingClientRect();
+    const knightRect = knight.getBoundingClientRect();
+    const enemyRect = enemy.getBoundingClientRect();
+
+    return {
+      from: {
+        x: enemyRect.left - actorsRect.left + enemyRect.width * 0.22,
+        y: enemyRect.top - actorsRect.top + enemyRect.height * 0.42,
+      },
+      to: {
+        x: knightRect.left - actorsRect.left + knightRect.width * 0.55,
+        y: knightRect.top - actorsRect.top + knightRect.height * 0.42,
+      },
+    };
+  }, []);
+
   useLayoutEffect(() => {
     if (!energyBlast) {
       setBlastPoints(null);
@@ -97,6 +134,14 @@ export default function CorridorScene({
     setBlastPoints(measureBlastPoints());
   }, [energyBlast, measureBlastPoints]);
 
+  useLayoutEffect(() => {
+    if (!enemyArrow) {
+      setArrowPoints(null);
+      return;
+    }
+    setArrowPoints(measureArrowPoints());
+  }, [enemyArrow, measureArrowPoints]);
+
   const backgroundSrc = arenaPrimeiroInimigo
     ? "/game/fundo-corredor-completo.png"
     : "/game/fundo-corredor.png";
@@ -104,8 +149,8 @@ export default function CorridorScene({
   const sceneStyle = {
     "--rk-walk-ms": `${walkDurationMs}ms`,
     "--rk-scroll-ms": `${walkDurationMs}ms`,
-    "--rk-goblin-charge-ms": "720ms",
-    "--rk-goblin-retreat-ms": "720ms",
+    "--rk-goblin-charge-ms": `${enemyChargeMs}ms`,
+    "--rk-goblin-retreat-ms": `${enemyRetreatMs}ms`,
   } as React.CSSProperties;
 
   const sceneClass = [
@@ -151,7 +196,12 @@ export default function CorridorScene({
                 </div>
               )}
               <div ref={knightVisualRef} className="rk-knight-visual">
-                <KnightSprite pose={knightPose} />
+                <KnightSprite
+                  pose={knightPose}
+                  onAnimationComplete={
+                    knightPose === "defeat" ? onKnightDefeatComplete : undefined
+                  }
+                />
               </div>
             </div>
           </div>
@@ -164,20 +214,20 @@ export default function CorridorScene({
               "rk-scene__enemy-slot",
               `rk-scene__enemy-slot--${mode}`,
               enemyScrollWaiting && "rk-scene__enemy-slot--scroll-wait",
-              enemyMovePhase === "charge" && "rk-scene__enemy-slot--charge",
+              enemyMovePhase === "charge" &&
+                (inimigo && isCavaleiroInimigo(inimigo)
+                  ? "rk-scene__enemy-slot--charge-knight"
+                  : "rk-scene__enemy-slot--charge"),
               enemyMovePhase === "atKnight" && "rk-scene__enemy-slot--at-knight",
-              enemyMovePhase === "retreat" && "rk-scene__enemy-slot--retreat",
+              enemyMovePhase === "retreat" &&
+                (inimigo && isCavaleiroInimigo(inimigo)
+                  ? "rk-scene__enemy-slot--retreat-knight"
+                  : "rk-scene__enemy-slot--retreat"),
             ]
               .filter(Boolean)
               .join(" ")}
           >
-            <div
-              className={`rk-enemy-stack${
-                !inimigo.ehRei && inimigo.nome.toLowerCase().includes("goblin")
-                  ? " rk-enemy-stack--goblin"
-                  : ""
-              }`}
-            >
+            <div className={`rk-enemy-stack${enemyStackClass(inimigo)}`}>
               {mode === "battle" && typeof vidaInimigo === "number" && (
                 <div className="rk-scene__hp rk-scene__hp--enemy">
                   <VidasBar
@@ -194,6 +244,7 @@ export default function CorridorScene({
                   ehRei={inimigo.ehRei}
                   pose={enemyPose}
                   flipped={enemyFlipped}
+                  movePhase={enemyMovePhase}
                   onAnimationComplete={onEnemyAnimationComplete}
                   onAttackComplete={onEnemyAttackComplete}
                 />
@@ -208,6 +259,15 @@ export default function CorridorScene({
             to={blastPoints.to}
             durationMs={KNIGHT_BLAST_MS}
             onHit={onEnergyBlastHit}
+          />
+        )}
+
+        {enemyArrow && arrowPoints && (
+          <EnemyArrow
+            from={arrowPoints.from}
+            to={arrowPoints.to}
+            durationMs={arrowDurationMs}
+            onHit={onEnemyArrowHit}
           />
         )}
       </div>

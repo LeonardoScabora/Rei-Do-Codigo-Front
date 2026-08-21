@@ -1,46 +1,43 @@
 import { useEffect, useRef, useState } from "react";
 
-export type GoblinPose = "idle" | "run" | "attack" | "hurt" | "death";
+export type SkeletonPose = "idle" | "run" | "attack" | "hurt" | "death";
 
 type SheetConfig = {
   src: string;
-  /** Total de frames no arquivo (define o background-size). */
   sheetFrames: number;
   frameMs: number;
   loop: boolean;
-  /** Sequência de índices exibidos (padrão: todos os frames do sheet). */
   sequence?: number[];
 };
 
-export const GOBLIN_DISPLAY_SIZE = 375;
+export const SKELETON_DISPLAY_SIZE = 375;
 
-/** Pixels transparentes abaixo dos pés no frame original (medido nos PNGs). */
-const FOOT_PADDING: Record<GoblinPose, { frameH: number; padding: number }> = {
+const FOOT_PADDING: Record<SkeletonPose, { frameH: number; padding: number }> = {
   idle: { frameH: 150, padding: 49 },
-  run: { frameH: 128, padding: 42 },
+  run: { frameH: 150, padding: 49 },
   attack: { frameH: 128, padding: 42 },
   hurt: { frameH: 150, padding: 49 },
   death: { frameH: 150, padding: 49 },
 };
 
-function footDropPx(pose: GoblinPose): number {
+function footDropPx(pose: SkeletonPose): number {
   const { frameH, padding } = FOOT_PADDING[pose];
-  return Math.round(padding * (GOBLIN_DISPLAY_SIZE / frameH));
+  return Math.round(padding * (SKELETON_DISPLAY_SIZE / frameH));
 }
 
-const SHEETS: Record<GoblinPose, SheetConfig> = {
-  idle: { src: "/game/goblin/idle.png", sheetFrames: 4, frameMs: 175, loop: true },
-  run: { src: "/game/goblin/run.png", sheetFrames: 8, frameMs: 95, loop: true },
-  attack: {
-    src: "/game/goblin/attack.png",
-    sheetFrames: 8,
-    sequence: [0, 1],
-    frameMs: 140,
-    loop: false,
+const SHEETS: Record<SkeletonPose, SheetConfig> = {
+  idle: { src: "/game/skeleton/idle.png", sheetFrames: 4, frameMs: 175, loop: true },
+  run: {
+    src: "/game/skeleton/walk.png",
+    sheetFrames: 4,
+    sequence: [3, 2, 1, 0],
+    frameMs: 120,
+    loop: true,
   },
-  hurt: { src: "/game/goblin/take-hit.png", sheetFrames: 4, frameMs: 110, loop: false },
+  attack: { src: "/game/skeleton/attack.png", sheetFrames: 8, frameMs: 100, loop: false },
+  hurt: { src: "/game/skeleton/take-hit.png", sheetFrames: 4, frameMs: 110, loop: false },
   death: {
-    src: "/game/goblin/death.png",
+    src: "/game/skeleton/death.png",
     sheetFrames: 4,
     sequence: [3, 2, 1, 0],
     frameMs: 180,
@@ -52,7 +49,7 @@ function sheetSequence(sheet: SheetConfig): number[] {
   return sheet.sequence ?? Array.from({ length: sheet.sheetFrames }, (_, i) => i);
 }
 
-export const GOBLIN_ANIM_MS = {
+export const SKELETON_ANIM_MS = {
   idleCycle: SHEETS.idle.sheetFrames * SHEETS.idle.frameMs,
   runCycle: SHEETS.run.sheetFrames * SHEETS.run.frameMs,
   attack: sheetSequence(SHEETS.attack).length * SHEETS.attack.frameMs,
@@ -60,11 +57,10 @@ export const GOBLIN_ANIM_MS = {
   death: sheetSequence(SHEETS.death).length * SHEETS.death.frameMs,
 } as const;
 
-/** Golpe conecta no 2º frame da sequência de ataque. */
-export const GOBLIN_ATTACK_HIT_MS = SHEETS.attack.frameMs;
+export const SKELETON_ATTACK_HIT_MS = 4 * SHEETS.attack.frameMs;
 
 type Props = {
-  pose?: GoblinPose;
+  pose?: SkeletonPose;
   flipped?: boolean;
   className?: string;
   onAnimationComplete?: () => void;
@@ -75,7 +71,8 @@ function framePosition(frameIndex: number, sheetFrames: number): string {
   return `${x}% 100%`;
 }
 
-export default function GoblinSprite({
+/** Esqueleto guerreiro (2º inimigo): sprites espelhados, comportamento de melee. */
+export default function SkeletonSprite({
   pose = "idle",
   flipped = false,
   className = "",
@@ -116,13 +113,13 @@ export default function GoblinSprite({
 
   return (
     <div
-      className={`rk-goblin-wrap rk-goblin-wrap--${pose}${flipped ? " rk-goblin-wrap--flipped" : ""} ${className}`.trim()}
+      className={`rk-skeleton-wrap rk-skeleton-wrap--${pose}${flipped ? " rk-skeleton-wrap--flipped" : ""} ${className}`.trim()}
       style={{ bottom: `-${footDrop}px` }}
     >
       <div
-        className={`rk-goblin-sprite rk-goblin-sprite--${pose}`}
+        className={`rk-skeleton-sprite rk-skeleton-sprite--${pose}`}
         role="img"
-        aria-label="Goblin"
+        aria-label="Esqueleto guerreiro"
         style={{
           backgroundImage: `url(${sheet.src})`,
           backgroundSize: `${sheet.sheetFrames * 100}% 100%`,

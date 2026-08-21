@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type KnightPose = "idle" | "walk" | "attack" | "jump" | "hurt" | "defeat";
 
 type Props = {
   pose?: KnightPose;
   className?: string;
+  onAnimationComplete?: () => void;
 };
 
 type SheetConfig = {
@@ -21,7 +22,7 @@ const SHEETS: Record<KnightPose, SheetConfig> = {
   attack: { src: "/game/knight/attack-2.png", frames: 4, frameMs: 165, loop: false },
   jump: { src: "/game/knight/jump.png", frames: 6, frameMs: 205, loop: false },
   hurt: { src: "/game/knight/hurt.png", frames: 2, frameMs: 280, loop: false },
-  defeat: { src: "/game/knight/hurt.png", frames: 2, frameMs: 280, loop: false },
+  defeat: { src: "/game/knight/dead.png", frames: 6, frameMs: 220, loop: false },
 };
 
 /** Frame do golpe em que a rajada deve sair (0 = primeiro frame). */
@@ -38,6 +39,7 @@ export const KNIGHT_ANIM_MS = {
   attackBlast: KNIGHT_ATTACK_BLAST_FRAME * SHEETS.attack.frameMs,
   jump: SHEETS.jump.frames * SHEETS.jump.frameMs,
   hurt: SHEETS.hurt.frames * SHEETS.hurt.frameMs,
+  defeat: SHEETS.defeat.frames * SHEETS.defeat.frameMs,
 } as const;
 
 function framePosition(frame: number, frames: number): string {
@@ -47,20 +49,25 @@ function framePosition(frame: number, frames: number): string {
 
 /**
  * Cavaleiro do jogador via sprite sheets:
- * Idle (loop), Walk (loop), Run_Attack (1x), Jump (retorno), Hurt (1x → Idle).
+ * Idle (loop), Walk (loop), Attack (1x), Jump (1x), Hurt (1x), Dead (1x → corpo no chão).
  */
-export default function KnightSprite({ pose = "idle", className = "" }: Props) {
+export default function KnightSprite({
+  pose = "idle",
+  className = "",
+  onAnimationComplete,
+}: Props) {
   const sheet = SHEETS[pose];
   const [frame, setFrame] = useState(0);
+  const onCompleteRef = useRef(onAnimationComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onAnimationComplete;
+  }, [onAnimationComplete]);
 
   useEffect(() => {
     setFrame(0);
-    if (pose === "defeat") {
-      setFrame(sheet.frames - 1);
-      return;
-    }
-
     let current = 0;
+
     const id = window.setInterval(() => {
       current += 1;
       if (current >= sheet.frames) {
@@ -69,6 +76,7 @@ export default function KnightSprite({ pose = "idle", className = "" }: Props) {
         } else {
           current = sheet.frames - 1;
           window.clearInterval(id);
+          onCompleteRef.current?.();
         }
       }
       setFrame(current);

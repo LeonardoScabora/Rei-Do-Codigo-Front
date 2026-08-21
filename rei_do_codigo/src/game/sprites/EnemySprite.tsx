@@ -1,4 +1,11 @@
-import GoblinSprite, { type GoblinPose, GOBLIN_ANIM_MS } from "./GoblinSprite";
+import GoblinSprite, { type GoblinPose, GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS } from "./GoblinSprite";
+import SkeletonSprite, { type SkeletonPose, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS } from "./SkeletonSprite";
+import EnemyKnightSprite, {
+  type EnemyKnightPose,
+  ENEMY_KNIGHT_ANIM_MS,
+  ENEMY_KNIGHT_ATTACK_HIT_MS,
+} from "./EnemyKnightSprite";
+import type { EnemyMovePhase } from "../CorridorScene";
 
 export type EnemyPose = "idle" | "approach" | "attack" | "hurt" | "fall";
 
@@ -7,19 +14,21 @@ type Props = {
   ehRei?: boolean;
   pose?: EnemyPose;
   flipped?: boolean;
+  movePhase?: EnemyMovePhase;
   className?: string;
   onAnimationComplete?: () => void;
   onAttackComplete?: () => void;
 };
 
-export { GOBLIN_ANIM_MS };
+export { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS };
 
-/** Sprite do inimigo: goblin usa sheets; demais usam pixel art procedural. */
+/** Sprite do inimigo: goblin e esqueleto usam sheets; demais usam pixel art procedural. */
 export default function EnemySprite({
   nome,
   ehRei = false,
   pose = "idle",
   flipped = false,
+  movePhase = "none",
   className = "",
   onAnimationComplete,
   onAttackComplete,
@@ -29,7 +38,33 @@ export default function EnemySprite({
   if (kind === "goblin") {
     return (
       <GoblinSprite
-        pose={mapGoblinPose(pose)}
+        pose={mapMeleePose(pose)}
+        flipped={flipped}
+        className={className}
+        onAnimationComplete={
+          pose === "fall" ? onAnimationComplete : pose === "attack" ? onAttackComplete : undefined
+        }
+      />
+    );
+  }
+
+  if (kind === "esqueleto") {
+    return (
+      <SkeletonSprite
+        pose={mapMeleePose(pose)}
+        flipped={flipped}
+        className={className}
+        onAnimationComplete={
+          pose === "fall" ? onAnimationComplete : pose === "attack" ? onAttackComplete : undefined
+        }
+      />
+    );
+  }
+
+  if (kind === "cavaleiro") {
+    return (
+      <EnemyKnightSprite
+        pose={mapEnemyKnightPose(pose, movePhase)}
         flipped={flipped}
         className={className}
         onAnimationComplete={
@@ -53,14 +88,28 @@ export default function EnemySprite({
         </div>
         {kind === "rei" && <div className="rk-enemy-crown" />}
         {kind === "mago" && <div className="rk-enemy-staff" />}
-        {kind === "esqueleto" && <div className="rk-enemy-bone" />}
       </div>
       {pose === "attack" && <span className="rk-slash rk-slash--enemy" />}
     </div>
   );
 }
 
-function mapGoblinPose(pose: EnemyPose): GoblinPose {
+function mapEnemyKnightPose(pose: EnemyPose, movePhase: EnemyMovePhase): EnemyKnightPose {
+  switch (pose) {
+    case "approach":
+      return movePhase === "none" ? "walk" : "run";
+    case "fall":
+      return "death";
+    case "hurt":
+      return "hurt";
+    case "attack":
+      return "attack";
+    default:
+      return "idle";
+  }
+}
+
+function mapMeleePose(pose: EnemyPose): GoblinPose & SkeletonPose {
   switch (pose) {
     case "approach":
       return "run";
@@ -82,5 +131,5 @@ function classify(nome: string, ehRei: boolean): string {
   if (n.includes("esqueleto")) return "esqueleto";
   if (n.includes("mago")) return "mago";
   if (n.includes("cavaleiro")) return "cavaleiro";
-  return "goblin";
+  return "generic";
 }
