@@ -5,6 +5,7 @@ import EnemyKnightSprite, {
   ENEMY_KNIGHT_ANIM_MS,
   ENEMY_KNIGHT_ATTACK_HIT_MS,
 } from "./EnemyKnightSprite";
+import MageSprite, { type MagePose, MAGE_ANIM_MS } from "./MageSprite";
 import type { EnemyMovePhase } from "../CorridorScene";
 
 export type EnemyPose = "idle" | "approach" | "attack" | "hurt" | "fall";
@@ -20,9 +21,17 @@ type Props = {
   onAttackComplete?: () => void;
 };
 
-export { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS };
+export {
+  GOBLIN_ANIM_MS,
+  GOBLIN_ATTACK_HIT_MS,
+  SKELETON_ANIM_MS,
+  SKELETON_ATTACK_HIT_MS,
+  ENEMY_KNIGHT_ANIM_MS,
+  ENEMY_KNIGHT_ATTACK_HIT_MS,
+  MAGE_ANIM_MS,
+};
 
-/** Sprite do inimigo: goblin e esqueleto usam sheets; demais usam pixel art procedural. */
+/** Sprite do inimigo: goblin, esqueleto, cavaleiro e mago usam sheets; demais usam pixel art procedural. */
 export default function EnemySprite({
   nome,
   ehRei = false,
@@ -74,6 +83,19 @@ export default function EnemySprite({
     );
   }
 
+  if (kind === "mago") {
+    return (
+      <MageSprite
+        pose={mapMagePose(pose)}
+        flipped={flipped}
+        className={className}
+        onAnimationComplete={
+          pose === "fall" ? onAnimationComplete : pose === "attack" ? onAttackComplete : undefined
+        }
+      />
+    );
+  }
+
   return (
     <div
       className={`rk-enemy-sprite rk-enemy-sprite--${kind} rk-enemy-sprite--${pose} ${className}`.trim()}
@@ -98,6 +120,21 @@ function mapEnemyKnightPose(pose: EnemyPose, movePhase: EnemyMovePhase): EnemyKn
   switch (pose) {
     case "approach":
       return movePhase === "none" ? "walk" : "run";
+    case "fall":
+      return "death";
+    case "hurt":
+      return "hurt";
+    case "attack":
+      return "attack";
+    default:
+      return "idle";
+  }
+}
+
+function mapMagePose(pose: EnemyPose): MagePose {
+  switch (pose) {
+    case "approach":
+      return "walk";
     case "fall":
       return "death";
     case "hurt":

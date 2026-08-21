@@ -16,12 +16,13 @@ import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
-import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, type EnemyPose } from "./sprites/EnemySprite";
+import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, type EnemyPose } from "./sprites/EnemySprite";
 import type { EnemyMovePhase } from "./CorridorScene";
 import {
   isCavaleiroInimigo,
   isEsqueletoInimigo,
   isGoblinInimigo,
+  isMagoInimigo,
   usesMeleeChargeAttack,
   usesSheetEnemyDeath,
 } from "./enemyKind";
@@ -84,6 +85,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [enemyMovePhase, setEnemyMovePhase] = useState<EnemyMovePhase>("none");
   const [animandoHit, setAnimandoHit] = useState(false);
   const [energyBlast, setEnergyBlast] = useState(false);
+  const [mageMagic, setMageMagic] = useState(false);
   const [crownActive, setCrownActive] = useState(false);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
@@ -119,6 +121,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
     setEnergyBlast(false);
+    setMageMagic(false);
     setCrownActive(false);
   }, []);
 
@@ -256,6 +259,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setAnimandoHit(false);
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
+    setMageMagic(false);
     setEnemyPose("idle");
     setKnightPose("defeat");
     setFase("knight_fall");
@@ -270,6 +274,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setAnimandoHit(false);
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
+    setMageMagic(false);
 
     if (resultado.status === "VITORIA") {
       setKnightPose("idle");
@@ -387,6 +392,37 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     );
   }
 
+  /** Mago: Attack no idle → Charge2 em tracejado até o cavaleiro. */
+  function iniciarAtaqueMago(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
+    setEnemyFlipped(false);
+    setEnemyMovePhase("none");
+    setEnemyPose("attack");
+    setKnightPose("idle");
+    pendingHitRef.current = { parcial, resultado };
+
+    onEnemyAttackCompleteRef.current = () => {
+      setEnemyPose("idle");
+      setMageMagic(true);
+    };
+  }
+
+  const handleMageMagicHit = useCallback(() => {
+    const pending = pendingHitRef.current;
+    if (!pending) return;
+
+    pendingHitRef.current = null;
+    setBatalha((atual) => (atual ? { ...atual, ...pending.parcial } : atual));
+    setKnightPose("hurt");
+
+    hitTimer.current = window.setTimeout(() => {
+      finalizarAposAnimacao(pending.resultado);
+    }, HURT_MS);
+  }, []);
+
+  const handleMageMagicComplete = useCallback(() => {
+    setMageMagic(false);
+  }, []);
+
   const resolverImpactoEnergia = useCallback(() => {
     const pending = pendingHitRef.current;
     if (!pending) return;
@@ -402,7 +438,9 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
         ? SKELETON_ANIM_MS.hurt
         : isCavaleiroInimigo(inimigoAtualRef.current)
           ? ENEMY_KNIGHT_ANIM_MS.hurt
-          : HURT_MS;
+          : isMagoInimigo(inimigoAtualRef.current)
+            ? MAGE_ANIM_MS.hurt
+            : HURT_MS;
     hitTimer.current = window.setTimeout(() => {
       finalizarAposAnimacao(pending.resultado);
     }, hurtMs);
@@ -418,6 +456,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     pendingHitRef.current = null;
     onEnemyAttackCompleteRef.current = null;
     setEnergyBlast(false);
+    setMageMagic(false);
     setEnemyFlipped(false);
     setEnemyMovePhase("none");
 
@@ -450,6 +489,11 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
 
     if (isEsqueletoInimigo(inimigoAtual)) {
       iniciarAtaqueEsqueleto(parcial, resultado);
+      return;
+    }
+
+    if (isMagoInimigo(inimigoAtual)) {
+      iniciarAtaqueMago(parcial, resultado);
       return;
     }
 
@@ -564,13 +608,18 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
               usesSheetEnemyDeath(inimigoAtual) ? handleEnemyDeathComplete : undefined
             }
             onEnemyAttackComplete={
-              usesMeleeChargeAttack(inimigoAtual) ? handleEnemyAttackComplete : undefined
+              usesMeleeChargeAttack(inimigoAtual) || isMagoInimigo(inimigoAtual)
+                ? handleEnemyAttackComplete
+                : undefined
             }
             vidaJogador={batalha?.vidaJogador}
             vidaInimigo={batalha?.vidaInimigo}
             compact={Boolean(painelDireito) && !isPrimeiroInimigo}
             energyBlast={energyBlast}
             onEnergyBlastHit={resolverImpactoEnergia}
+            mageMagic={mageMagic}
+            onMageMagicHit={handleMageMagicHit}
+            onMageMagicComplete={handleMageMagicComplete}
             arenaPrimeiroInimigo={arenaAtiva}
             knightEntering={knightEntering}
             knightExiting={knightExiting}

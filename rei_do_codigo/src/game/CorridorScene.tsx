@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Inimigo } from "../api";
 import CodeEnergyBlast from "./components/CodeEnergyBlast";
 import EnemyArrow from "./components/EnemyArrow";
+import MageMagic from "./components/MageMagic";
 import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
@@ -32,6 +33,9 @@ type Props = {
   enemyArrow?: boolean;
   onEnemyArrowHit?: () => void;
   arrowDurationMs?: number;
+  mageMagic?: boolean;
+  onMageMagicHit?: () => void;
+  onMageMagicComplete?: () => void;
   /** Primeiro inimigo: fundo estático da arena + entrada lateral dos atores. */
   arenaPrimeiroInimigo?: boolean;
   knightEntering?: boolean;
@@ -67,6 +71,9 @@ export default function CorridorScene({
   enemyArrow = false,
   onEnemyArrowHit,
   arrowDurationMs = 520,
+  mageMagic = false,
+  onMageMagicHit,
+  onMageMagicComplete,
   arenaPrimeiroInimigo = false,
   knightEntering = false,
   knightExiting = false,
@@ -81,6 +88,9 @@ export default function CorridorScene({
   const enemySlotRef = useRef<HTMLDivElement>(null);
   const [blastPoints, setBlastPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
   const [arrowPoints, setArrowPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
+  const [mageSpellPoints, setMageSpellPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(
+    null,
+  );
 
   const measureBlastPoints = useCallback(() => {
     const actors = actorsRef.current;
@@ -141,6 +151,14 @@ export default function CorridorScene({
     }
     setArrowPoints(measureArrowPoints());
   }, [enemyArrow, measureArrowPoints]);
+
+  useLayoutEffect(() => {
+    if (!mageMagic) {
+      setMageSpellPoints(null);
+      return;
+    }
+    setMageSpellPoints(measureArrowPoints());
+  }, [mageMagic, measureArrowPoints]);
 
   const backgroundSrc = arenaPrimeiroInimigo
     ? "/game/fundo-corredor-completo.png"
@@ -268,6 +286,15 @@ export default function CorridorScene({
             to={arrowPoints.to}
             durationMs={arrowDurationMs}
             onHit={onEnemyArrowHit}
+          />
+        )}
+
+        {mageMagic && mageSpellPoints && (
+          <MageMagic
+            from={mageSpellPoints.from}
+            to={mageSpellPoints.to}
+            onHit={onMageMagicHit}
+            onComplete={onMageMagicComplete}
           />
         )}
       </div>
