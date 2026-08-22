@@ -11,18 +11,21 @@ import {
 import { labelLinguagem } from "../Menu/language";
 import CrownIcon from "../Components/CrownIcon";
 import CodeBattle from "./CodeBattle";
-import CorridorScene, { type CorridorMode } from "./CorridorScene";
+import CorridorScene, { type ArenaKind, type CorridorMode, type EnemyMovePhase } from "./CorridorScene";
 import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
-import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS, type EnemyPose } from "./sprites/EnemySprite";
-import type { EnemyMovePhase } from "./CorridorScene";
+import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS, KING_ANIM_MS, KING_ATTACK_HIT_MS, type EnemyPose } from "./sprites/EnemySprite";
+import type { KingAttackVariant } from "./sprites/KingSprite";
 import {
   isCavaleiroInimigo,
   isEsqueletoInimigo,
   isGoblinInimigo,
   isMagoInimigo,
+  isReiInimigo,
+  usaSaidaComCoroa,
+  usesLongChargeMove,
   usesMeleeChargeAttack,
   usesSheetEnemyDeath,
 } from "./enemyKind";
@@ -49,6 +52,7 @@ type Fase =
   | "defeat";
 
 const DIALOGO_PADRAO = "Voce nunca passara por mim verme!";
+const DIALOGO_REI = "Você atravessou o Corredor Real... agora lute por sua coroa.";
 const WALK_MS = 5000;
 const EXIT_MS = WALK_MS;
 const FALL_MS = 1400;
@@ -86,6 +90,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [animandoHit, setAnimandoHit] = useState(false);
   const [energyBlast, setEnergyBlast] = useState(false);
   const [mageMagic, setMageMagic] = useState(false);
+  const [kingAttack, setKingAttack] = useState<KingAttackVariant>(1);
   const [crownActive, setCrownActive] = useState(false);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
@@ -138,7 +143,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       const proximo = lista.find((i) => i.ordemNoCorredor === user.progresso) ?? null;
       setInimigoAtual(proximo);
       setBatalha(null);
-      setEnemyPose("approach");
+      setEnemyPose(proximo?.ehRei ? "idle" : "approach");
       setKnightPose("walk");
 
       if (pendingCorridorEntrance.current) {
@@ -178,7 +183,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   }, []);
 
   function avancarAposMorteInimigo() {
-    if (inimigoAtualRef.current?.ordemNoCorredor === 1) {
+    if (usaSaidaComCoroa(inimigoAtualRef.current)) {
       iniciarSaidaArena();
       return;
     }
@@ -199,7 +204,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
 
   const handleCrownDone = useCallback(() => {
     setCrownActive(false);
-    pendingCorridorEntrance.current = true;
     void (async () => {
       try {
         const u = await buscarUsuario(usuario.id);
@@ -210,6 +214,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
           setInimigoAtual(null);
           return;
         }
+        const proximo = inimigos.find((i) => i.ordemNoCorredor === u.progresso);
+        pendingCorridorEntrance.current = Boolean(proximo && !proximo.ehRei);
         iniciarCaminhada(inimigos, u);
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Erro ao avançar no corredor.");
@@ -392,6 +398,20 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     );
   }
 
+  /** Rei: Run até o cavaleiro → um dos 3 ataques ao acaso → Run espelhado de volta. */
+  function iniciarAtaqueRei(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
+    const variante = (Math.floor(Math.random() * 3) + 1) as KingAttackVariant;
+    setKingAttack(variante);
+    iniciarAtaqueMelee(
+      parcial,
+      resultado,
+      ENEMY_KNIGHT_CHARGE_MS,
+      ENEMY_KNIGHT_RETREAT_MS,
+      KING_ATTACK_HIT_MS,
+      KING_ANIM_MS.attack,
+    );
+  }
+
   /** Mago: Attack no idle; Charge2 sai no antepenúltimo quadro. */
   function iniciarAtaqueMago(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
     setEnemyFlipped(false);
@@ -443,6 +463,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
           ? ENEMY_KNIGHT_ANIM_MS.hurt
           : isMagoInimigo(inimigoAtualRef.current)
             ? MAGE_ANIM_MS.hurt
+            : isReiInimigo(inimigoAtualRef.current)
+              ? KING_ANIM_MS.hurt
             : HURT_MS;
     hitTimer.current = window.setTimeout(() => {
       finalizarAposAnimacao(pending.resultado);
@@ -500,6 +522,11 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       return;
     }
 
+    if (isReiInimigo(inimigoAtual)) {
+      iniciarAtaqueRei(parcial, resultado);
+      return;
+    }
+
     setEnemyPose("attack");
     setBatalha((atual) => (atual ? { ...atual, ...parcial } : atual));
     setKnightPose("hurt");
@@ -540,13 +567,15 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             : "ended";
 
   const isPrimeiroInimigo = inimigoAtual?.ordemNoCorredor === 1;
-  const arenaAtiva = isPrimeiroInimigo || fase === "knight_exit_arena";
-  const scrolling = (fase === "walking" || fase === "corridor_entrance") && !isPrimeiroInimigo;
+  const isRei = isReiInimigo(inimigoAtual);
+  const arenaEstatica = isPrimeiroInimigo || isRei;
+  const arenaKind: ArenaKind = isRei ? "throne" : isPrimeiroInimigo ? "first" : "corridor";
+  const scrolling = (fase === "walking" || fase === "corridor_entrance") && !arenaEstatica;
   const corridorScrollPrep = fase === "corridor_entrance";
   const enemyScrollWaiting = corridorScrollPrep;
   const scrollActive = scrolling && !corridorScrollPrep;
   const knightEntering =
-    (fase === "walking" && isPrimeiroInimigo) || fase === "corridor_entrance";
+    (fase === "walking" && arenaEstatica) || fase === "corridor_entrance";
   const knightExiting = fase === "knight_exit_arena";
   const enemyVisible =
     Boolean(inimigoAtual) &&
@@ -561,10 +590,10 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const painelDireito = emBatalha || fase === "enemy_fall";
   const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
   const vidaAtual = batalha?.vidaJogador ?? 3;
-  const enemyChargeMs = isCavaleiroInimigo(inimigoAtual)
+  const enemyChargeMs = usesLongChargeMove(inimigoAtual)
     ? ENEMY_KNIGHT_CHARGE_MS
     : GOBLIN_CHARGE_MS;
-  const enemyRetreatMs = isCavaleiroInimigo(inimigoAtual)
+  const enemyRetreatMs = usesLongChargeMove(inimigoAtual)
     ? ENEMY_KNIGHT_RETREAT_MS
     : GOBLIN_RETREAT_MS;
 
@@ -617,13 +646,13 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             }
             vidaJogador={batalha?.vidaJogador}
             vidaInimigo={batalha?.vidaInimigo}
-            compact={Boolean(painelDireito) && !isPrimeiroInimigo}
+            compact={Boolean(painelDireito) && !arenaEstatica}
             energyBlast={energyBlast}
             onEnergyBlastHit={resolverImpactoEnergia}
             mageMagic={mageMagic}
             onMageMagicHit={handleMageMagicHit}
             onMageMagicComplete={handleMageMagicComplete}
-            arenaPrimeiroInimigo={arenaAtiva}
+            arenaKind={arenaKind}
             knightEntering={knightEntering}
             knightExiting={knightExiting}
             enemyScrollWaiting={enemyScrollWaiting}
@@ -631,12 +660,13 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             walkDurationMs={knightExiting ? EXIT_MS : WALK_MS}
             enemyChargeMs={enemyChargeMs}
             enemyRetreatMs={enemyRetreatMs}
+            kingAttack={kingAttack}
           />
 
           {fase === "dialogue" && inimigoAtual && (
             <DialogueBox
               speaker={inimigoAtual.nome}
-              text={DIALOGO_PADRAO}
+              text={isReiInimigo(inimigoAtual) ? DIALOGO_REI : DIALOGO_PADRAO}
               onContinue={() => void comecarBatalha()}
             />
           )}

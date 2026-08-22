@@ -6,6 +6,12 @@ import EnemyKnightSprite, {
   ENEMY_KNIGHT_ATTACK_HIT_MS,
 } from "./EnemyKnightSprite";
 import MageSprite, { type MagePose, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS } from "./MageSprite";
+import KingSprite, {
+  type KingPose,
+  type KingAttackVariant,
+  KING_ANIM_MS,
+  KING_ATTACK_HIT_MS,
+} from "./KingSprite";
 import type { EnemyMovePhase } from "../CorridorScene";
 
 export type EnemyPose = "idle" | "approach" | "attack" | "hurt" | "fall";
@@ -19,6 +25,7 @@ type Props = {
   className?: string;
   onAnimationComplete?: () => void;
   onAttackComplete?: () => void;
+  kingAttack?: KingAttackVariant;
 };
 
 export {
@@ -30,6 +37,8 @@ export {
   ENEMY_KNIGHT_ATTACK_HIT_MS,
   MAGE_ANIM_MS,
   MAGE_ATTACK_SHOT_MS,
+  KING_ANIM_MS,
+  KING_ATTACK_HIT_MS,
 };
 
 /** Sprite do inimigo: goblin, esqueleto, cavaleiro e mago usam sheets; demais usam pixel art procedural. */
@@ -42,6 +51,7 @@ export default function EnemySprite({
   className = "",
   onAnimationComplete,
   onAttackComplete,
+  kingAttack = 1,
 }: Props) {
   const kind = classify(nome, ehRei);
 
@@ -97,6 +107,19 @@ export default function EnemySprite({
     );
   }
 
+  if (kind === "rei") {
+    return (
+      <KingSprite
+        pose={mapKingPose(pose, movePhase, kingAttack)}
+        flipped={flipped}
+        className={className}
+        onAnimationComplete={
+          pose === "fall" ? onAnimationComplete : pose === "attack" ? onAttackComplete : undefined
+        }
+      />
+    );
+  }
+
   return (
     <div
       className={`rk-enemy-sprite rk-enemy-sprite--${kind} rk-enemy-sprite--${pose} ${className}`.trim()}
@@ -129,6 +152,25 @@ function mapEnemyKnightPose(pose: EnemyPose, movePhase: EnemyMovePhase): EnemyKn
       return "attack";
     default:
       return "idle";
+  }
+}
+
+function mapKingPose(
+  pose: EnemyPose,
+  movePhase: EnemyMovePhase,
+  attackVariant: KingAttackVariant,
+): KingPose {
+  switch (pose) {
+    case "approach":
+      return "run";
+    case "fall":
+      return "death";
+    case "hurt":
+      return "hurt";
+    case "attack":
+      return attackVariant === 2 ? "attack2" : attackVariant === 3 ? "attack3" : "attack1";
+    default:
+      return movePhase === "none" ? "idle" : "run";
   }
 }
 

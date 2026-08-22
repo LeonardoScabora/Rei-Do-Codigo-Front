@@ -475,7 +475,7 @@
   image-rendering: auto;
 }
 
-.rk-scene:not(.rk-scene--scroll) .rk-scene__backdrop-img:last-child {
+.rk-scene:not(.rk-scene--scroll) .rk-scene__backdrop-track > .rk-scene__backdrop-img:last-child {
   display: none;
 }
 
@@ -676,6 +676,21 @@
 /* Linha do chão compartilhada: pés do cavaleiro e do goblin no mesmo Y */
 .rk-scene--arena {
   --rk-actor-feet-y: 18%;
+}
+
+.rk-scene--throne {
+  --rk-actor-feet-y: 12%;
+}
+
+.rk-scene--throne .rk-scene__backdrop {
+  background-color: #14060a;
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+}
+
+.rk-scene--throne .rk-scene__vignette {
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(40, 0, 8, 0.55) 100%);
 }
 
 .rk-scene__knight-slot--entering {
@@ -1017,6 +1032,63 @@
   filter: none;
 }
 
+/* ===== King sprites (Rei do Código) ===== */
+.rk-enemy-stack--king {
+  position: relative;
+  width: 120px;
+  gap: 6px;
+}
+
+.rk-enemy-stack--king .rk-enemy-visual {
+  width: 120px;
+  height: 168px;
+}
+
+.rk-enemy-stack--king .rk-scene__hp--enemy {
+  position: absolute;
+  left: 50%;
+  bottom: 176px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 220px;
+  white-space: nowrap;
+}
+
+.rk-king-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  overflow: visible;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55));
+}
+
+.rk-king-wrap--flipped {
+  transform: translateX(-50%) scaleX(-1);
+}
+
+.rk-king-sprite {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.rk-king-wrap--hurt {
+  filter:
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
+    brightness(1.25);
+}
+
+.rk-king-sprite--hurt,
+.rk-king-sprite--death {
+  filter: none;
+}
+
 .rk-mage-bolt {
   position: absolute;
   margin-left: -48px;
@@ -1077,7 +1149,8 @@
 .rk-scene__enemy-slot--dialogue,
 .rk-scene__enemy-slot--battle,
 .rk-scene__enemy-slot--enemy_fall,
-.rk-scene__enemy-slot--ended {
+.rk-scene__enemy-slot--ended,
+.rk-scene__enemy-slot--stationed {
   right: 18%;
 }
 

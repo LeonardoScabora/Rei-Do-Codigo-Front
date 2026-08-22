@@ -16,8 +16,26 @@ export function isMagoInimigo(inimigo: Inimigo | null): boolean {
   return Boolean(inimigo && !inimigo.ehRei && inimigo.nome.toLowerCase().includes("mago"));
 }
 
+export function isReiInimigo(inimigo: Inimigo | null): boolean {
+  return Boolean(inimigo?.ehRei);
+}
+
+/** Goblin e mago: corpo no chão, cavaleiro atravessa a tela e a coroa carrega o próximo cenário. */
+export function usaSaidaComCoroa(inimigo: Inimigo | null): boolean {
+  return inimigo?.ordemNoCorredor === 1 || isMagoInimigo(inimigo);
+}
+
 export function usesMeleeChargeAttack(inimigo: Inimigo | null): boolean {
-  return isGoblinInimigo(inimigo) || isEsqueletoInimigo(inimigo) || isCavaleiroInimigo(inimigo);
+  return (
+    isGoblinInimigo(inimigo) ||
+    isEsqueletoInimigo(inimigo) ||
+    isCavaleiroInimigo(inimigo) ||
+    isReiInimigo(inimigo)
+  );
+}
+
+export function usesLongChargeMove(inimigo: Inimigo | null): boolean {
+  return isCavaleiroInimigo(inimigo) || isReiInimigo(inimigo);
 }
 
 export function usesSheetEnemyDeath(inimigo: Inimigo | null): boolean {
@@ -26,9 +44,10 @@ export function usesSheetEnemyDeath(inimigo: Inimigo | null): boolean {
 
 export function enemyStackClass(inimigo: Inimigo): string {
   const n = inimigo.nome.toLowerCase();
-  if (!inimigo.ehRei && n.includes("goblin")) return " rk-enemy-stack--goblin";
-  if (!inimigo.ehRei && n.includes("esqueleto")) return " rk-enemy-stack--skeleton";
-  if (!inimigo.ehRei && n.includes("cavaleiro")) return " rk-enemy-stack--enemy-knight";
-  if (!inimigo.ehRei && n.includes("mago")) return " rk-enemy-stack--mage";
+  if (inimigo.ehRei) return " rk-enemy-stack--king";
+  if (n.includes("goblin")) return " rk-enemy-stack--goblin";
+  if (n.includes("esqueleto")) return " rk-enemy-stack--skeleton";
+  if (n.includes("cavaleiro")) return " rk-enemy-stack--enemy-knight";
+  if (n.includes("mago")) return " rk-enemy-stack--mage";
   return "";
 }

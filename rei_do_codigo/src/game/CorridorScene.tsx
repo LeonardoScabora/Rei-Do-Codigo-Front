@@ -6,10 +6,12 @@ import MageMagic from "./components/MageMagic";
 import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
-import { enemyStackClass, isCavaleiroInimigo } from "./enemyKind";
+import { enemyStackClass, usesLongChargeMove } from "./enemyKind";
+import type { KingAttackVariant } from "./sprites/KingSprite";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
 export type EnemyMovePhase = "none" | "charge" | "atKnight" | "retreat";
+export type ArenaKind = "corridor" | "first" | "throne";
 
 type BlastPoint = { x: number; y: number };
 
@@ -36,8 +38,8 @@ type Props = {
   mageMagic?: boolean;
   onMageMagicHit?: () => void;
   onMageMagicComplete?: () => void;
-  /** Primeiro inimigo: fundo estático da arena + entrada lateral dos atores. */
-  arenaPrimeiroInimigo?: boolean;
+  /** Arena estática: primeiro inimigo, sala do trono, ou corredor com scroll. */
+  arenaKind?: ArenaKind;
   knightEntering?: boolean;
   knightExiting?: boolean;
   enemyScrollWaiting?: boolean;
@@ -45,6 +47,7 @@ type Props = {
   walkDurationMs?: number;
   enemyChargeMs?: number;
   enemyRetreatMs?: number;
+  kingAttack?: KingAttackVariant;
 };
 
 /**
@@ -74,7 +77,7 @@ export default function CorridorScene({
   mageMagic = false,
   onMageMagicHit,
   onMageMagicComplete,
-  arenaPrimeiroInimigo = false,
+  arenaKind = "corridor",
   knightEntering = false,
   knightExiting = false,
   enemyScrollWaiting = false,
@@ -82,6 +85,7 @@ export default function CorridorScene({
   walkDurationMs = 5000,
   enemyChargeMs = 720,
   enemyRetreatMs = 720,
+  kingAttack = 1,
 }: Props) {
   const actorsRef = useRef<HTMLDivElement>(null);
   const knightVisualRef = useRef<HTMLDivElement>(null);
@@ -160,9 +164,13 @@ export default function CorridorScene({
     setMageSpellPoints(measureArrowPoints());
   }, [mageMagic, measureArrowPoints]);
 
-  const backgroundSrc = arenaPrimeiroInimigo
-    ? "/game/fundo-corredor-completo.png"
-    : "/game/fundo-corredor.png";
+  const staticArena = arenaKind === "first" || arenaKind === "throne";
+  const backgroundSrc =
+    arenaKind === "throne"
+      ? "/game/fundo-trono.png"
+      : arenaKind === "first"
+        ? "/game/fundo-corredor-completo.png"
+        : "/game/fundo-corredor.png";
 
   const sceneStyle = {
     "--rk-walk-ms": `${walkDurationMs}ms`,
@@ -176,25 +184,27 @@ export default function CorridorScene({
     compact && "rk-scene--compact",
     scrolling && "rk-scene--scroll",
     scrollActive && "rk-scene--scroll-active",
-    arenaPrimeiroInimigo && "rk-scene--arena",
+    staticArena && "rk-scene--arena",
+    arenaKind === "throne" && "rk-scene--throne",
     mode === "dialogue" && "rk-scene--dialogue",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const arenaBackdropStyle = arenaPrimeiroInimigo
-    ? {
-        backgroundImage: `url("${backgroundSrc}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center 40%",
-        backgroundRepeat: "no-repeat",
-      }
-    : undefined;
+  const arenaBackdropStyle =
+    staticArena
+      ? {
+          backgroundImage: `url("${backgroundSrc}")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+          backgroundRepeat: "no-repeat",
+        }
+      : undefined;
 
   return (
     <div className={sceneClass} style={sceneStyle}>
       <div className="rk-scene__backdrop" aria-hidden style={arenaBackdropStyle}>
-        {!arenaPrimeiroInimigo && (
+        {arenaKind === "corridor" && (
           <div className="rk-scene__backdrop-track">
             <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
             <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
@@ -230,15 +240,15 @@ export default function CorridorScene({
             ref={enemySlotRef}
             className={[
               "rk-scene__enemy-slot",
-              `rk-scene__enemy-slot--${mode}`,
+              `rk-scene__enemy-slot--${inimigo.ehRei && mode === "walking" ? "stationed" : mode}`,
               enemyScrollWaiting && "rk-scene__enemy-slot--scroll-wait",
               enemyMovePhase === "charge" &&
-                (inimigo && isCavaleiroInimigo(inimigo)
+                (usesLongChargeMove(inimigo)
                   ? "rk-scene__enemy-slot--charge-knight"
                   : "rk-scene__enemy-slot--charge"),
               enemyMovePhase === "atKnight" && "rk-scene__enemy-slot--at-knight",
               enemyMovePhase === "retreat" &&
-                (inimigo && isCavaleiroInimigo(inimigo)
+                (usesLongChargeMove(inimigo)
                   ? "rk-scene__enemy-slot--retreat-knight"
                   : "rk-scene__enemy-slot--retreat"),
             ]
@@ -263,6 +273,7 @@ export default function CorridorScene({
                   pose={enemyPose}
                   flipped={enemyFlipped}
                   movePhase={enemyMovePhase}
+                  kingAttack={kingAttack}
                   onAnimationComplete={onEnemyAnimationComplete}
                   onAttackComplete={onEnemyAttackComplete}
                 />
