@@ -1046,8 +1046,8 @@
 
 .rk-enemy-stack--king .rk-scene__hp--enemy {
   position: absolute;
-  left: 50%;
-  bottom: 176px;
+  left: 30%;
+  bottom: 190px;
   transform: translateX(-50%);
   width: max-content;
   max-width: 220px;
@@ -1079,6 +1079,7 @@
 }
 
 .rk-king-wrap--hurt {
+  transform: translateX(-50%) scaleX(-1);
   filter:
     drop-shadow(0 6px 8px rgba(0, 0, 0, 0.55))
     brightness(1.25);

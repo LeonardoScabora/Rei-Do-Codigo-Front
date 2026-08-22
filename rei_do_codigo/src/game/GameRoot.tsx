@@ -64,6 +64,13 @@ const ATTACK_MS = KNIGHT_ANIM_MS.attack;
 const ATTACK_BLAST_MS = KNIGHT_ANIM_MS.attackBlast;
 const HURT_MS = KNIGHT_ANIM_MS.hurt;
 
+function usarPainelCodigo(batalha: Batalha): boolean {
+  if (batalha.ehRei) {
+    return batalha.vidaInimigo <= 1;
+  }
+  return batalha.tipoInimigo === "CODIGO";
+}
+
 function FlameIcon() {
   return (
     <svg viewBox="0 0 16 20" width="16" height="20" aria-hidden className="rk-flame-icon">
@@ -701,17 +708,17 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
 
         {painelDireito && batalha && inimigoAtual && (
           <aside className="rk-game-side">
-            {batalha.tipoInimigo === "MULTIPLA_ESCOLHA" ? (
-              <QuizBattle
+            {usarPainelCodigo(batalha) ? (
+              <CodeBattle
                 batalha={batalha}
-                totalPerguntas={inimigoAtual.vidaMaxima}
+                linguagem={usuario.linguagem}
                 onAtualizarBatalha={atualizarBatalha}
                 disabled={animandoHit || fase !== "battle"}
               />
             ) : (
-              <CodeBattle
+              <QuizBattle
                 batalha={batalha}
-                linguagem={usuario.linguagem}
+                totalPerguntas={inimigoAtual.ehRei ? 4 : inimigoAtual.vidaMaxima}
                 onAtualizarBatalha={atualizarBatalha}
                 disabled={animandoHit || fase !== "battle"}
               />

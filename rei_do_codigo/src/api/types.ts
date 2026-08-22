@@ -33,6 +33,8 @@ export interface Batalha {
   status: StatusBatalha;
   perguntaAtual: number;
   ehRei: boolean;
+  /** Rei: última vida é desafio de algoritmo. */
+  faseCodigo?: boolean;
 }
 
 export interface Pergunta {
