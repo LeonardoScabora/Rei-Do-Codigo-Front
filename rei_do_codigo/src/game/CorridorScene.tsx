@@ -41,10 +41,12 @@ type Props = {
   /** Arena estática: primeiro inimigo, sala do trono, ou corredor com scroll. */
   arenaKind?: ArenaKind;
   knightEntering?: boolean;
+  knightWaitingEnter?: boolean;
   knightExiting?: boolean;
   enemyScrollWaiting?: boolean;
   scrollActive?: boolean;
   walkDurationMs?: number;
+  onKnightEnterComplete?: () => void;
   enemyChargeMs?: number;
   enemyRetreatMs?: number;
   kingAttack?: KingAttackVariant;
@@ -79,10 +81,12 @@ export default function CorridorScene({
   onMageMagicComplete,
   arenaKind = "corridor",
   knightEntering = false,
+  knightWaitingEnter = false,
   knightExiting = false,
   enemyScrollWaiting = false,
   scrollActive = false,
   walkDurationMs = 5000,
+  onKnightEnterComplete,
   enemyChargeMs = 720,
   enemyRetreatMs = 720,
   kingAttack = 1,
@@ -214,7 +218,18 @@ export default function CorridorScene({
 
       <div ref={actorsRef} className="rk-scene__actors">
         <div
-          className={`rk-scene__knight-slot${knightEntering ? " rk-scene__knight-slot--entering" : ""}${knightExiting ? " rk-scene__knight-slot--exiting" : ""}`}
+          className={`rk-scene__knight-slot${knightWaitingEnter ? " rk-scene__knight-slot--waiting-enter" : ""}${knightEntering ? " rk-scene__knight-slot--entering" : ""}${knightExiting ? " rk-scene__knight-slot--exiting" : ""}`}
+          onAnimationEnd={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (!knightEntering || !onKnightEnterComplete) return;
+            if (
+              event.animationName !== "rk-knight-enter" &&
+              event.animationName !== "rk-knight-enter-corridor"
+            ) {
+              return;
+            }
+            onKnightEnterComplete();
+          }}
         >
           <div className="rk-scene__knight-move">
             <div className="rk-knight-stack">

@@ -55,6 +55,14 @@ const DIALOGO_PADRAO = "Voce nunca passara por mim verme!";
 const DIALOGO_REI = "Você atravessou o Corredor Real... agora lute por sua coroa.";
 const WALK_MS = 5000;
 const EXIT_MS = WALK_MS;
+/** Distância original da entrada na arena (-38% → 14%) em 5s: velocidade do passo. */
+const ARENA_ENTER_FROM = -38;
+const KNIGHT_FIGHT_LEFT = 14;
+/** No corredor começa mais perto da borda para aparecer logo, sem andar mais rápido. */
+const CORRIDOR_ENTER_FROM = -12;
+const ENTER_MS = Math.round(
+  ((KNIGHT_FIGHT_LEFT - CORRIDOR_ENTER_FROM) / (KNIGHT_FIGHT_LEFT - ARENA_ENTER_FROM)) * WALK_MS,
+);
 const FALL_MS = 1400;
 const GOBLIN_CHARGE_MS = 720;
 const GOBLIN_RETREAT_MS = 720;
@@ -63,6 +71,21 @@ const ENEMY_KNIGHT_RETREAT_MS = 1400;
 const ATTACK_MS = KNIGHT_ANIM_MS.attack;
 const ATTACK_BLAST_MS = KNIGHT_ANIM_MS.attackBlast;
 const HURT_MS = KNIGHT_ANIM_MS.hurt;
+
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
+function fundoDaCena(inimigo: Inimigo | null): string {
+  if (inimigo?.ehRei) return "/game/fundo-trono.png";
+  if (inimigo?.ordemNoCorredor === 1) return "/game/fundo-corredor-completo.png";
+  return "/game/fundo-corredor.png";
+}
 
 function usarPainelCodigo(batalha: Batalha): boolean {
   if (batalha.ehRei) {
@@ -99,6 +122,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [mageMagic, setMageMagic] = useState(false);
   const [kingAttack, setKingAttack] = useState<KingAttackVariant>(1);
   const [crownActive, setCrownActive] = useState(false);
+  const [crownSceneReady, setCrownSceneReady] = useState(false);
+  const [entradaLiberada, setEntradaLiberada] = useState(true);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
@@ -107,6 +132,9 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const deathAdvanceTimer = useRef<number | null>(null);
   const corridorEntranceTimer = useRef<number | null>(null);
   const pendingCorridorEntrance = useRef(false);
+  const faseRef = useRef<Fase>("loading");
+  const crownSwapRef = useRef(false);
+  const pendingCrownWalk = useRef<"corridor" | "walking" | null>(null);
   const pendingHitRef = useRef<{ parcial: Partial<Batalha>; resultado: ResultadoAcao } | null>(null);
   const inimigoAtualRef = useRef(inimigoAtual);
   const onEnemyAttackCompleteRef = useRef<(() => void) | null>(null);
@@ -114,6 +142,10 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   useEffect(() => {
     inimigoAtualRef.current = inimigoAtual;
   }, [inimigoAtual]);
+
+  useEffect(() => {
+    faseRef.current = fase;
+  }, [fase]);
 
   const limparTimers = useCallback(() => {
     if (walkTimer.current) window.clearTimeout(walkTimer.current);
@@ -134,7 +166,20 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setEnemyMovePhase("none");
     setEnergyBlast(false);
     setMageMagic(false);
-    setCrownActive(false);
+  }, []);
+
+  const concluirEntradaCorredor = useCallback(() => {
+    if (faseRef.current !== "corridor_entrance") return;
+    if (corridorEntranceTimer.current) {
+      window.clearTimeout(corridorEntranceTimer.current);
+      corridorEntranceTimer.current = null;
+    }
+    setFase("walking");
+    walkTimer.current = window.setTimeout(() => {
+      setKnightPose("idle");
+      setEnemyPose("idle");
+      setFase("dialogue");
+    }, WALK_MS);
   }, []);
 
   const iniciarCaminhada = useCallback(
@@ -156,19 +201,21 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       if (pendingCorridorEntrance.current) {
         pendingCorridorEntrance.current = false;
         setFase("corridor_entrance");
-
-        corridorEntranceTimer.current = window.setTimeout(() => {
-          setFase("walking");
-          walkTimer.current = window.setTimeout(() => {
-            setKnightPose("idle");
-            setEnemyPose("idle");
-            setFase("dialogue");
-          }, WALK_MS);
-        }, WALK_MS);
+        if (crownSwapRef.current) {
+          pendingCrownWalk.current = "corridor";
+          setEntradaLiberada(false);
+          return;
+        }
+        corridorEntranceTimer.current = window.setTimeout(concluirEntradaCorredor, ENTER_MS);
         return;
       }
 
       setFase("walking");
+      if (crownSwapRef.current) {
+        pendingCrownWalk.current = "walking";
+        setEntradaLiberada(false);
+        return;
+      }
 
       walkTimer.current = window.setTimeout(() => {
         setKnightPose("idle");
@@ -176,8 +223,25 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
         setFase("dialogue");
       }, WALK_MS);
     },
-    [limparTimers],
+    [limparTimers, concluirEntradaCorredor],
   );
+
+  const iniciarTimersPosCoroa = useCallback(() => {
+    setEntradaLiberada(true);
+    if (pendingCrownWalk.current === "corridor") {
+      pendingCrownWalk.current = null;
+      corridorEntranceTimer.current = window.setTimeout(concluirEntradaCorredor, ENTER_MS);
+      return;
+    }
+    if (pendingCrownWalk.current === "walking") {
+      pendingCrownWalk.current = null;
+      walkTimer.current = window.setTimeout(() => {
+        setKnightPose("idle");
+        setEnemyPose("idle");
+        setFase("dialogue");
+      }, WALK_MS);
+    }
+  }, [concluirEntradaCorredor]);
 
   const iniciarSaidaArena = useCallback(() => {
     setBatalha(null);
@@ -185,6 +249,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     setKnightPose("walk");
 
     walkTimer.current = window.setTimeout(() => {
+      setCrownSceneReady(false);
       setCrownActive(true);
     }, EXIT_MS);
   }, []);
@@ -209,27 +274,40 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
     onEnemyAttackCompleteRef.current = null;
   }, []);
 
-  const handleCrownDone = useCallback(() => {
-    setCrownActive(false);
+  const handleCrownCovered = useCallback(() => {
     void (async () => {
       try {
+        crownSwapRef.current = true;
         const u = await buscarUsuario(usuario.id);
         setUsuario(u);
         if (u.venceuRei) {
           setFase("victory_final");
           setKnightPose("idle");
           setInimigoAtual(null);
+          setCrownSceneReady(true);
           return;
         }
-        const proximo = inimigos.find((i) => i.ordemNoCorredor === u.progresso);
+        const proximo = inimigos.find((i) => i.ordemNoCorredor === u.progresso) ?? null;
         pendingCorridorEntrance.current = Boolean(proximo && !proximo.ehRei);
+        await preloadImage(fundoDaCena(proximo));
         iniciarCaminhada(inimigos, u);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => setCrownSceneReady(true));
+        });
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Erro ao avançar no corredor.");
         setFase("defeat");
+        setCrownSceneReady(true);
       }
     })();
   }, [usuario.id, inimigos, iniciarCaminhada]);
+
+  const handleCrownDone = useCallback(() => {
+    crownSwapRef.current = false;
+    setCrownActive(false);
+    setCrownSceneReady(false);
+    iniciarTimersPosCoroa();
+  }, [iniciarTimersPosCoroa]);
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -578,11 +656,14 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const arenaEstatica = isPrimeiroInimigo || isRei;
   const arenaKind: ArenaKind = isRei ? "throne" : isPrimeiroInimigo ? "first" : "corridor";
   const scrolling = (fase === "walking" || fase === "corridor_entrance") && !arenaEstatica;
-  const corridorScrollPrep = fase === "corridor_entrance";
-  const enemyScrollWaiting = corridorScrollPrep;
-  const scrollActive = scrolling && !corridorScrollPrep;
+  const enteringCorridor = fase === "corridor_entrance";
   const knightEntering =
-    (fase === "walking" && arenaEstatica) || fase === "corridor_entrance";
+    entradaLiberada &&
+    ((fase === "walking" && arenaEstatica) || enteringCorridor);
+  const knightWaitingEnter =
+    !entradaLiberada &&
+    ((fase === "walking" && arenaEstatica) || enteringCorridor);
+  const scrollActive = scrolling && !enteringCorridor;
   const knightExiting = fase === "knight_exit_arena";
   const enemyVisible =
     Boolean(inimigoAtual) &&
@@ -661,10 +742,12 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
             onMageMagicComplete={handleMageMagicComplete}
             arenaKind={arenaKind}
             knightEntering={knightEntering}
+            knightWaitingEnter={knightWaitingEnter}
             knightExiting={knightExiting}
-            enemyScrollWaiting={enemyScrollWaiting}
+            enemyScrollWaiting={enteringCorridor}
             scrollActive={scrollActive}
-            walkDurationMs={knightExiting ? EXIT_MS : WALK_MS}
+            walkDurationMs={knightExiting ? EXIT_MS : enteringCorridor ? ENTER_MS : WALK_MS}
+            onKnightEnterComplete={enteringCorridor ? concluirEntradaCorredor : undefined}
             enemyChargeMs={enemyChargeMs}
             enemyRetreatMs={enemyRetreatMs}
             kingAttack={kingAttack}
@@ -776,7 +859,12 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
         </div>
       </footer>
 
-      <CrownTransition active={crownActive} onDone={handleCrownDone} />
+      <CrownTransition
+        active={crownActive}
+        sceneReady={crownSceneReady}
+        onCovered={handleCrownCovered}
+        onDone={handleCrownDone}
+      />
     </div>
   );
 }

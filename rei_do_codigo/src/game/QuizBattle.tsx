@@ -167,7 +167,9 @@ export default function QuizBattle({
                   disabled={!podeResponder}
                   onClick={() => void responder(alt)}
                 >
-                  <span className="rk-quiz-letter">{alt}</span>
+                  <span className="rk-quiz-letter">
+                    <span className="rk-quiz-letter__glyph">{alt}</span>
+                  </span>
                   <span className="rk-quiz-texto">{textoAlternativa(pergunta, alt)}</span>
                   {revelarCorreta && (
                     <span className="rk-quiz-correct-tag">✓ correta</span>

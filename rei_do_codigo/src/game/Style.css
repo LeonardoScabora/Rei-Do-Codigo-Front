@@ -296,11 +296,22 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
+  box-sizing: border-box;
   font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
   color: #052014;
   background: #00ff9d;
   border: 1px solid #052014;
   box-shadow: 0 0 8px rgba(0, 255, 157, 0.5);
+}
+
+.rk-quiz-letter__glyph {
+  display: block;
+  line-height: 1;
+  letter-spacing: 0;
+  /* Press Start 2P: glyph sits high and slightly to the right in the em box. */
+  transform: translate(1px, 1.5px);
 }
 
 .rk-error {

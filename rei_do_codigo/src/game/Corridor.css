@@ -353,7 +353,7 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: #000;
+  background: transparent;
 }
 
 .rk-crown-transition__veil {
@@ -372,7 +372,7 @@
 
 .rk-crown-transition--reveal .rk-crown-transition__veil {
   opacity: 0;
-  transition: opacity 0.7s ease;
+  transition: opacity 0.75s ease;
 }
 
 .rk-crown-transition__crown {
@@ -693,9 +693,24 @@
   background: radial-gradient(ellipse at center, transparent 52%, rgba(40, 0, 8, 0.55) 100%);
 }
 
+.rk-scene__knight-slot--waiting-enter {
+  left: -38%;
+}
+
 .rk-scene__knight-slot--entering {
   left: -38%;
   animation: rk-knight-enter var(--rk-walk-ms, 5s) ease-out forwards;
+}
+
+/* Mesma velocidade de passo da arena; só começa mais perto da borda para aparecer logo. */
+.rk-scene--scroll .rk-scene__knight-slot--waiting-enter,
+.rk-scene--scroll .rk-scene__knight-slot--entering {
+  left: -12%;
+}
+
+.rk-scene--scroll .rk-scene__knight-slot--entering {
+  animation-name: rk-knight-enter-corridor;
+  animation-timing-function: linear;
 }
 
 .rk-scene__knight-slot--exiting {
@@ -1542,6 +1557,11 @@
 
 @keyframes rk-knight-enter {
   from { left: -38%; }
+  to { left: 14%; }
+}
+
+@keyframes rk-knight-enter-corridor {
+  from { left: -12%; }
   to { left: 14%; }
 }
 
