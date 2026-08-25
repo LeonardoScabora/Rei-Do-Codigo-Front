@@ -6,7 +6,7 @@ import MageMagic from "./components/MageMagic";
 import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
-import { enemyStackClass, usesLongChargeMove } from "./enemyKind";
+import { enemyStackClass, isGoblinInimigo, usesLongChargeMove } from "./enemyKind";
 import type { KingAttackVariant } from "./sprites/KingSprite";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
@@ -255,7 +255,11 @@ export default function CorridorScene({
             ref={enemySlotRef}
             className={[
               "rk-scene__enemy-slot",
-              `rk-scene__enemy-slot--${inimigo.ehRei && mode === "walking" ? "stationed" : mode}`,
+              `rk-scene__enemy-slot--${
+                (inimigo.ehRei || isGoblinInimigo(inimigo)) && mode === "walking"
+                  ? "stationed"
+                  : mode
+              }`,
               enemyScrollWaiting && "rk-scene__enemy-slot--scroll-wait",
               enemyMovePhase === "charge" &&
                 (usesLongChargeMove(inimigo)

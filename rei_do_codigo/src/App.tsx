@@ -20,6 +20,7 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [crownActive, setCrownActive] = useState(false);
+  const [crownSceneReady, setCrownSceneReady] = useState(false);
 
   useEffect(() => {
     if (screen === "menu") {
@@ -32,6 +33,7 @@ export default function App() {
   function entrarNoJogo(u: Usuario) {
     localStorage.setItem(STORAGE_KEY, String(u.id));
     setUsuario(u);
+    setCrownSceneReady(false);
     setScreen("game");
     setCrownActive(true);
   }
@@ -56,6 +58,11 @@ export default function App() {
 
   const handleCrownDone = useCallback(() => {
     setCrownActive(false);
+    setCrownSceneReady(false);
+  }, []);
+
+  const handleSceneReady = useCallback(() => {
+    setCrownSceneReady(true);
   }, []);
 
   function handleSair() {
@@ -63,6 +70,7 @@ export default function App() {
     setUsuario(null);
     setCreateError(null);
     setCrownActive(false);
+    setCrownSceneReady(false);
   }
 
   return (
@@ -88,10 +96,15 @@ export default function App() {
           usuarioInicial={usuario}
           onSair={handleSair}
           pronto={!crownActive}
+          onSceneReady={handleSceneReady}
         />
       )}
 
-      <CrownTransition active={crownActive} onDone={handleCrownDone} />
+      <CrownTransition
+        active={crownActive}
+        sceneReady={crownSceneReady}
+        onDone={handleCrownDone}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import CorridorScene, { type ArenaKind, type CorridorMode, type EnemyMovePhase }
 import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
 import QuizBattle from "./QuizBattle";
+import VictoryCinematic from "./VictoryCinematic";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
 import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS, KING_ANIM_MS, KING_ATTACK_HIT_MS, type EnemyPose } from "./sprites/EnemySprite";
 import type { KingAttackVariant } from "./sprites/KingSprite";
@@ -35,8 +36,10 @@ import "./Corridor.css";
 type Props = {
   usuarioInicial: Usuario;
   onSair: () => void;
-  /** Só inicia a caminhada depois da transição da coroa. */
+  /** Libera a caminhada quando a coroa de entrada termina. */
   pronto?: boolean;
+  /** Cena montada atrás do véu da coroa inicial. */
+  onSceneReady?: () => void;
 };
 
 type Fase =
@@ -106,7 +109,7 @@ function FlameIcon() {
   );
 }
 
-export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Props) {
+export default function GameRoot({ usuarioInicial, onSair, pronto = true, onSceneReady }: Props) {
   const [usuario, setUsuario] = useState(usuarioInicial);
   const [inimigos, setInimigos] = useState<Inimigo[]>([]);
   const [fase, setFase] = useState<Fase>("loading");
@@ -123,7 +126,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const [kingAttack, setKingAttack] = useState<KingAttackVariant>(1);
   const [crownActive, setCrownActive] = useState(false);
   const [crownSceneReady, setCrownSceneReady] = useState(false);
-  const [entradaLiberada, setEntradaLiberada] = useState(true);
+  const [entradaLiberada, setEntradaLiberada] = useState(pronto);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
@@ -138,6 +141,11 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
   const pendingHitRef = useRef<{ parcial: Partial<Batalha>; resultado: ResultadoAcao } | null>(null);
   const inimigoAtualRef = useRef(inimigoAtual);
   const onEnemyAttackCompleteRef = useRef<(() => void) | null>(null);
+  const prontoRef = useRef(pronto);
+  const onSceneReadyRef = useRef(onSceneReady);
+
+  prontoRef.current = pronto;
+  onSceneReadyRef.current = onSceneReady;
 
   useEffect(() => {
     inimigoAtualRef.current = inimigoAtual;
@@ -195,7 +203,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       const proximo = lista.find((i) => i.ordemNoCorredor === user.progresso) ?? null;
       setInimigoAtual(proximo);
       setBatalha(null);
-      setEnemyPose(proximo?.ehRei ? "idle" : "approach");
+      setEnemyPose("idle");
       setKnightPose("walk");
 
       if (pendingCorridorEntrance.current) {
@@ -281,6 +289,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
         const u = await buscarUsuario(usuario.id);
         setUsuario(u);
         if (u.venceuRei) {
+          await preloadImage("/game/cena-final.png");
           setFase("victory_final");
           setKnightPose("idle");
           setInimigoAtual(null);
@@ -319,18 +328,30 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       ]);
       setUsuario(u);
       setInimigos(lista);
+      if (!prontoRef.current) {
+        crownSwapRef.current = true;
+      }
       iniciarCaminhada(lista, u);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => onSceneReadyRef.current?.());
+      });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao carregar o corredor.");
       setFase("defeat");
+      onSceneReadyRef.current?.();
     }
   }, [usuarioInicial.id, iniciarCaminhada]);
 
   useEffect(() => {
-    if (!pronto) return;
     void carregar();
     return limparTimers;
-  }, [pronto, carregar, limparTimers]);
+  }, [carregar, limparTimers]);
+
+  useEffect(() => {
+    if (!pronto || !pendingCrownWalk.current) return;
+    crownSwapRef.current = false;
+    iniciarTimersPosCoroa();
+  }, [pronto, iniciarTimersPosCoroa]);
 
   async function comecarBatalha() {
     if (!inimigoAtual) return;
@@ -626,6 +647,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       const u = await buscarUsuario(usuario.id);
       setUsuario(u);
       if (u.venceuRei) {
+        await preloadImage("/game/cena-final.png");
         setFase("victory_final");
         setKnightPose("idle");
         setInimigoAtual(null);
@@ -687,6 +709,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
 
   return (
     <div className={`rk-game-root${painelDireito ? " rk-game-root--split" : ""}`}>
+      {fase !== "loading" && fase !== "victory_final" && (
+        <>
       <header className="rk-game-header">
         <button type="button" className="rk-menu-btn" onClick={onSair}>
           <span className="rk-menu-btn__icon" aria-hidden>
@@ -709,8 +733,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
       </header>
 
       {erro && <p className="rk-error rk-game-error">{erro}</p>}
-
-      {fase === "loading" && <p className="rk-hint">Entrando no Corredor Real...</p>}
 
       <div className="rk-game-body">
         <div className="rk-game-stage">
@@ -759,15 +781,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
               text={isReiInimigo(inimigoAtual) ? DIALOGO_REI : DIALOGO_PADRAO}
               onContinue={() => void comecarBatalha()}
             />
-          )}
-
-          {fase === "victory_final" && (
-            <div className="rk-overlay-card">
-              <p className="rk-feedback rk-ok">Você derrotou o Rei e se tornou o Rei do Código!</p>
-              <button type="button" className="rk-back-btn rk-confirm-btn" onClick={onSair}>
-                ‹ Voltar ao Menu
-              </button>
-            </div>
           )}
 
           {fase === "defeat" && (
@@ -858,6 +871,12 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true }: Prop
           </span>
         </div>
       </footer>
+        </>
+      )}
+
+      {fase === "victory_final" && (
+        <VictoryCinematic onSair={onSair} start={pronto && !crownActive} />
+      )}
 
       <CrownTransition
         active={crownActive}
