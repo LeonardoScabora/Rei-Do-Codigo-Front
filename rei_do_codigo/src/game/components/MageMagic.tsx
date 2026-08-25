@@ -10,8 +10,6 @@ type Props = {
 };
 
 const CHARGE2_FRAMES = 9;
-const CHARGE2_FRAME_W = 64;
-const CHARGE2_FRAME_H = 128;
 const CHARGE2_FRAME_MS = 70;
 const CHARGE2_TRAVEL_MS = 720;
 const CHARGE2_DISPLAY_W = 96;
