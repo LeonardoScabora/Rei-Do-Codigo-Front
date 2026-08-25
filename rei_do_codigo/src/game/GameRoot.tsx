@@ -30,6 +30,7 @@ import {
   usesMeleeChargeAttack,
   usesSheetEnemyDeath,
 } from "./enemyKind";
+import { stopCorridorMusic } from "../audio/music";
 import "./Style.css";
 import "./Corridor.css";
 
@@ -201,6 +202,9 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
       }
 
       const proximo = lista.find((i) => i.ordemNoCorredor === user.progresso) ?? null;
+      if (proximo?.ehRei) {
+        stopCorridorMusic();
+      }
       setInimigoAtual(proximo);
       setBatalha(null);
       setEnemyPose("idle");
@@ -297,6 +301,9 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
           return;
         }
         const proximo = inimigos.find((i) => i.ordemNoCorredor === u.progresso) ?? null;
+        if (proximo?.ehRei) {
+          stopCorridorMusic();
+        }
         pendingCorridorEntrance.current = Boolean(proximo && !proximo.ehRei);
         await preloadImage(fundoDaCena(proximo));
         iniciarCaminhada(inimigos, u);

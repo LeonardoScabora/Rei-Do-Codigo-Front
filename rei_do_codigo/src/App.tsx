@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { criarUsuario, type Usuario } from "./api";
-import { pauseMenuMusic, playMenuMusic } from "./audio/music";
+import {
+  pauseMenuMusic,
+  playCorridorMusic,
+  playMenuMusic,
+  resetCorridorMusicSession,
+  stopCorridorMusic,
+} from "./audio/music";
 import { MatrixRain } from "./Components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
 import GameRoot from "./game/GameRoot";
@@ -24,14 +30,20 @@ export default function App() {
 
   useEffect(() => {
     if (screen === "menu") {
+      stopCorridorMusic();
       playMenuMusic();
-    } else {
-      pauseMenuMusic();
+      return;
     }
-  }, [screen]);
+
+    pauseMenuMusic();
+    if (!crownActive) {
+      playCorridorMusic();
+    }
+  }, [screen, crownActive]);
 
   function entrarNoJogo(u: Usuario) {
     localStorage.setItem(STORAGE_KEY, String(u.id));
+    resetCorridorMusicSession();
     setUsuario(u);
     setCrownSceneReady(false);
     setScreen("game");
