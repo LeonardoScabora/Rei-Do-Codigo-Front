@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  pauseCorridorMusicForCrown,
-  resumeCorridorMusicAfterCrown,
-} from "../audio/music";
+import { pauseMusicForCrown, resumeMusicAfterCrown } from "../audio/music";
 import CrownIcon from "../Components/CrownIcon";
 
 type Props = {
@@ -44,7 +41,7 @@ export default function CrownTransition({
       return;
     }
 
-    pauseCorridorMusicForCrown();
+    pauseMusicForCrown();
     setPhase("shrink");
     const t1 = window.setTimeout(() => {
       setPhase("hold");
@@ -66,7 +63,7 @@ export default function CrownTransition({
   useEffect(() => {
     if (!active || phase !== "reveal") return;
     const tDone = window.setTimeout(() => {
-      resumeCorridorMusicAfterCrown();
+      resumeMusicAfterCrown();
       onDoneRef.current();
     }, 750);
     return () => window.clearTimeout(tDone);

@@ -4,8 +4,9 @@ import {
   pauseMenuMusic,
   playCorridorMusic,
   playMenuMusic,
-  resetCorridorMusicSession,
+  resetGameMusicSession,
   stopCorridorMusic,
+  stopKingMusic,
 } from "./audio/music";
 import { MatrixRain } from "./Components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
@@ -31,6 +32,7 @@ export default function App() {
   useEffect(() => {
     if (screen === "menu") {
       stopCorridorMusic();
+      stopKingMusic();
       playMenuMusic();
       return;
     }
@@ -43,7 +45,7 @@ export default function App() {
 
   function entrarNoJogo(u: Usuario) {
     localStorage.setItem(STORAGE_KEY, String(u.id));
-    resetCorridorMusicSession();
+    resetGameMusicSession();
     setUsuario(u);
     setCrownSceneReady(false);
     setScreen("game");

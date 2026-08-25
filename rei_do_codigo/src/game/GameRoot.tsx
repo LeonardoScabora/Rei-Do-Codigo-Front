@@ -30,7 +30,7 @@ import {
   usesMeleeChargeAttack,
   usesSheetEnemyDeath,
 } from "./enemyKind";
-import { stopCorridorMusic } from "../audio/music";
+import { playKingMusic, stopCorridorMusic, stopKingMusic } from "../audio/music";
 import "./Style.css";
 import "./Corridor.css";
 
@@ -359,6 +359,25 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
     crownSwapRef.current = false;
     iniciarTimersPosCoroa();
   }, [pronto, iniciarTimersPosCoroa]);
+
+  useEffect(() => {
+    const naSalaDoRei =
+      Boolean(inimigoAtual?.ehRei) &&
+      fase !== "loading" &&
+      fase !== "victory_final" &&
+      fase !== "defeat" &&
+      fase !== "knight_exit_arena";
+    const coroaBloqueando = crownActive || !pronto;
+
+    if (naSalaDoRei && !coroaBloqueando) {
+      playKingMusic();
+      return;
+    }
+
+    if (fase === "victory_final" || fase === "defeat") {
+      stopKingMusic();
+    }
+  }, [inimigoAtual, fase, crownActive, pronto]);
 
   async function comecarBatalha() {
     if (!inimigoAtual) return;

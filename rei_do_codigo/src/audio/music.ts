@@ -1,8 +1,11 @@
 import calmaUrl from "../assets/Calma.mp3";
 import corridorUrl from "../assets/FallenComrade.mp3";
+import kingUrl from "../assets/KingBattle.mp3";
 
 const SETTINGS_KEY = "rk_audio_settings";
 const VOLUME_PADRAO = 70;
+
+type Faixa = "menu" | "corredor" | "rei";
 
 function volumeSalvo(): number {
   try {
@@ -21,10 +24,15 @@ function volumeNormalizado(valor = volumeSalvo()): number {
 
 let menuAudio: HTMLAudioElement | null = null;
 let corridorAudio: HTMLAudioElement | null = null;
-let aguardandoInteracaoMenu = false;
-let aguardandoInteracaoCorredor = false;
+let kingAudio: HTMLAudioElement | null = null;
+let aguardandoInteracao: Record<Faixa, boolean> = {
+  menu: false,
+  corredor: false,
+  rei: false,
+};
 let corredorAtivo = false;
 let corredorEncerrado = false;
+let reiAtivo = false;
 
 function getMenuAudio(): HTMLAudioElement {
   if (!menuAudio) {
@@ -44,19 +52,24 @@ function getCorridorAudio(): HTMLAudioElement {
   return corridorAudio;
 }
 
-function tentarTocar(audio: HTMLAudioElement, tipo: "menu" | "corredor") {
-  audio.play().catch(() => {
-    const aguardando = tipo === "menu" ? aguardandoInteracaoMenu : aguardandoInteracaoCorredor;
-    if (aguardando) return;
+function getKingAudio(): HTMLAudioElement {
+  if (!kingAudio) {
+    kingAudio = new Audio(kingUrl);
+    kingAudio.loop = true;
+    kingAudio.volume = volumeNormalizado();
+  }
+  return kingAudio;
+}
 
-    if (tipo === "menu") aguardandoInteracaoMenu = true;
-    else aguardandoInteracaoCorredor = true;
+function tentarTocar(audio: HTMLAudioElement, faixa: Faixa) {
+  audio.play().catch(() => {
+    if (aguardandoInteracao[faixa]) return;
+    aguardandoInteracao[faixa] = true;
 
     const retomar = () => {
       window.removeEventListener("pointerdown", retomar);
       window.removeEventListener("keydown", retomar);
-      if (tipo === "menu") aguardandoInteracaoMenu = false;
-      else aguardandoInteracaoCorredor = false;
+      aguardandoInteracao[faixa] = false;
       audio.play().catch(() => {});
     };
     window.addEventListener("pointerdown", retomar);
@@ -64,11 +77,12 @@ function tentarTocar(audio: HTMLAudioElement, tipo: "menu" | "corredor") {
   });
 }
 
-/** Ajusta o volume das músicas do menu e do corredor (0 a 100). */
+/** Ajusta o volume de todas as músicas (0 a 100). */
 export function setMusicVolume(valor: number) {
   const vol = volumeNormalizado(valor);
   getMenuAudio().volume = vol;
   getCorridorAudio().volume = vol;
+  getKingAudio().volume = vol;
 }
 
 /** Toca a música do menu em loop. */
@@ -81,11 +95,13 @@ export function pauseMenuMusic() {
   menuAudio?.pause();
 }
 
-/** Prepara a música do corredor para uma nova partida. */
-export function resetCorridorMusicSession() {
+/** Prepara as músicas de jogo para uma nova partida. */
+export function resetGameMusicSession() {
   corredorEncerrado = false;
   corredorAtivo = false;
+  reiAtivo = false;
   corridorAudio?.pause();
+  kingAudio?.pause();
 }
 
 /** Inicia a música do corredor em loop (do início do jogo até a sala do rei). */
@@ -102,13 +118,31 @@ export function stopCorridorMusic() {
   corridorAudio?.pause();
 }
 
-/** Pausa a música do corredor durante a transição da coroa. */
-export function pauseCorridorMusicForCrown() {
-  corridorAudio?.pause();
+/** Inicia a música da batalha do rei em loop. */
+export function playKingMusic() {
+  reiAtivo = true;
+  tentarTocar(getKingAudio(), "rei");
 }
 
-/** Retoma a música do corredor após a transição da coroa, se ainda estiver ativa. */
-export function resumeCorridorMusicAfterCrown() {
-  if (!corredorAtivo) return;
-  tentarTocar(getCorridorAudio(), "corredor");
+/** Encerra a música da batalha do rei. */
+export function stopKingMusic() {
+  reiAtivo = false;
+  kingAudio?.pause();
+}
+
+/** Pausa a música de jogo durante a transição da coroa. */
+export function pauseMusicForCrown() {
+  corridorAudio?.pause();
+  kingAudio?.pause();
+}
+
+/** Retoma a música de jogo após a transição da coroa. */
+export function resumeMusicAfterCrown() {
+  if (reiAtivo) {
+    tentarTocar(getKingAudio(), "rei");
+    return;
+  }
+  if (corredorAtivo) {
+    tentarTocar(getCorridorAudio(), "corredor");
+  }
 }
