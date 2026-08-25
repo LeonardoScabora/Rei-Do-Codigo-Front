@@ -14,6 +14,7 @@ import CodeBattle from "./CodeBattle";
 import CorridorScene, { type ArenaKind, type CorridorMode, type EnemyMovePhase } from "./CorridorScene";
 import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
+import GameOptionsModal from "./GameOptionsModal";
 import QuizBattle from "./QuizBattle";
 import VictoryCinematic from "./VictoryCinematic";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
@@ -31,6 +32,7 @@ import {
   usesSheetEnemyDeath,
 } from "./enemyKind";
 import { playKingMusic, stopCorridorMusic, stopKingMusic } from "../audio/music";
+import GearIcon from "../Components/GearIcon";
 import "./Style.css";
 import "./Corridor.css";
 
@@ -127,6 +129,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const [kingAttack, setKingAttack] = useState<KingAttackVariant>(1);
   const [crownActive, setCrownActive] = useState(false);
   const [crownSceneReady, setCrownSceneReady] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [entradaLiberada, setEntradaLiberada] = useState(pronto);
   const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
@@ -738,16 +741,27 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
       {fase !== "loading" && fase !== "victory_final" && (
         <>
       <header className="rk-game-header">
-        <button type="button" className="rk-menu-btn" onClick={onSair}>
-          <span className="rk-menu-btn__icon" aria-hidden>
-            <i />
-            <i />
-            <i />
-          </span>
-          Menu
-        </button>
+        <div className="rk-game-header__actions">
+          <button type="button" className="rk-menu-btn" onClick={onSair}>
+            <span className="rk-menu-btn__icon" aria-hidden>
+              <i />
+              <i />
+              <i />
+            </span>
+            Menu
+          </button>
 
-        
+          <button
+            type="button"
+            className="rk-menu-btn"
+            onClick={() => setOptionsOpen(true)}
+          >
+            <span className="rk-menu-btn__icon rk-menu-btn__icon--gear" aria-hidden>
+              <GearIcon size={16} />
+            </span>
+            Opções
+          </button>
+        </div>
 
         <div className="rk-game-header__meta">
           <span>{usuario.nome}</span>
@@ -910,6 +924,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
         onCovered={handleCrownCovered}
         onDone={handleCrownDone}
       />
+
+      <GameOptionsModal open={optionsOpen} onClose={() => setOptionsOpen(false)} />
     </div>
   );
 }

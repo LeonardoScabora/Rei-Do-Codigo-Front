@@ -79,6 +79,111 @@
   box-shadow: 0 0 6px rgba(0, 255, 157, 0.8);
 }
 
+.rk-game-header__actions {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rk-menu-btn__icon--gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rk-neon);
+  filter: drop-shadow(0 0 6px rgba(0, 255, 157, 0.8));
+}
+
+.rk-game-options-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(2, 8, 6, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.rk-game-options-modal {
+  width: min(460px, 100%);
+  padding: 22px 24px 20px;
+  background:
+    linear-gradient(180deg, rgba(6, 16, 12, 0.98), rgba(4, 10, 8, 0.96));
+  border: 1.5px solid var(--rk-line);
+  box-shadow:
+    0 0 30px rgba(0, 255, 157, 0.18),
+    inset 0 0 24px rgba(0, 255, 157, 0.04);
+}
+
+.rk-game-options-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rk-line-soft);
+}
+
+.rk-game-options-modal__icon {
+  display: inline-flex;
+  color: var(--rk-neon);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 157, 0.7));
+}
+
+.rk-game-options-modal__title {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rk-neon);
+  text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+}
+
+.rk-game-options-modal__body .rk-option-row {
+  border-bottom-color: var(--rk-line-soft);
+}
+
+.rk-game-options-modal__body .rk-option-label {
+  color: var(--rk-neon-soft);
+}
+
+.rk-game-options-modal__body .rk-vol-btn {
+  border-color: var(--rk-neon-dim);
+  color: var(--rk-neon-soft);
+}
+
+.rk-game-options-modal__body .rk-vol-btn:hover {
+  background: rgba(0, 255, 157, 0.12);
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.35);
+}
+
+.rk-game-options-modal__body .rk-vol-block {
+  background: rgba(0, 255, 157, 0.12);
+  border-color: rgba(0, 255, 157, 0.28);
+}
+
+.rk-game-options-modal__body .rk-vol-block-filled {
+  background: var(--rk-neon);
+  box-shadow: 0 0 6px rgba(0, 255, 157, 0.7);
+}
+
+.rk-game-options-modal__body .rk-vol-value {
+  color: var(--rk-neon-dim);
+}
+
+.rk-game-options-modal__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rk-line-soft);
+}
+
 .rk-game-header__title {
   display: flex;
   flex-direction: column;
