@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { playVictoryMusic, stopVictoryMusic } from "../audio/music";
 
 const IMAGE_SRC = "/game/cena-final.png";
 const ZOOM_MS = 6500;
@@ -21,6 +22,12 @@ export default function VictoryCinematic({ onSair, start = true }: Props) {
     img.onerror = () => setLoaded(true);
     img.src = IMAGE_SRC;
   }, []);
+
+  useEffect(() => {
+    if (!start) return;
+    playVictoryMusic();
+    return () => stopVictoryMusic();
+  }, [start]);
 
   useEffect(() => {
     if (!loaded || !start) return;

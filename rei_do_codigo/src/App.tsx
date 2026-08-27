@@ -7,6 +7,7 @@ import {
   resetGameMusicSession,
   stopCorridorMusic,
   stopKingMusic,
+  stopVictoryMusic,
 } from "./audio/music";
 import { MatrixRain } from "./Components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
@@ -33,6 +34,7 @@ export default function App() {
     if (screen === "menu") {
       stopCorridorMusic();
       stopKingMusic();
+      stopVictoryMusic();
       playMenuMusic();
       return;
     }

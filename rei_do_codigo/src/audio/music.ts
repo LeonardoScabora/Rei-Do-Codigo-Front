@@ -1,11 +1,12 @@
 import calmaUrl from "../assets/Calma.mp3";
 import corridorUrl from "../assets/FallenComrade.mp3";
 import kingUrl from "../assets/KingBattle.mp3";
+import victoryUrl from "../assets/VictoryCeremony.mp3";
 
 const SETTINGS_KEY = "rk_audio_settings";
 const VOLUME_PADRAO = 70;
 
-type Faixa = "menu" | "corredor" | "rei";
+type Faixa = "menu" | "corredor" | "rei" | "vitoria";
 
 function volumeSalvo(): number {
   try {
@@ -25,14 +26,17 @@ function volumeNormalizado(valor = volumeSalvo()): number {
 let menuAudio: HTMLAudioElement | null = null;
 let corridorAudio: HTMLAudioElement | null = null;
 let kingAudio: HTMLAudioElement | null = null;
+let victoryAudio: HTMLAudioElement | null = null;
 let aguardandoInteracao: Record<Faixa, boolean> = {
   menu: false,
   corredor: false,
   rei: false,
+  vitoria: false,
 };
 let corredorAtivo = false;
 let corredorEncerrado = false;
 let reiAtivo = false;
+let vitoriaAtiva = false;
 
 function getMenuAudio(): HTMLAudioElement {
   if (!menuAudio) {
@@ -61,6 +65,15 @@ function getKingAudio(): HTMLAudioElement {
   return kingAudio;
 }
 
+function getVictoryAudio(): HTMLAudioElement {
+  if (!victoryAudio) {
+    victoryAudio = new Audio(victoryUrl);
+    victoryAudio.loop = true;
+    victoryAudio.volume = volumeNormalizado();
+  }
+  return victoryAudio;
+}
+
 function tentarTocar(audio: HTMLAudioElement, faixa: Faixa) {
   audio.play().catch(() => {
     if (aguardandoInteracao[faixa]) return;
@@ -83,6 +96,7 @@ export function setMusicVolume(valor: number) {
   getMenuAudio().volume = vol;
   getCorridorAudio().volume = vol;
   getKingAudio().volume = vol;
+  getVictoryAudio().volume = vol;
 }
 
 /** Toca a música do menu em loop. */
@@ -100,8 +114,13 @@ export function resetGameMusicSession() {
   corredorEncerrado = false;
   corredorAtivo = false;
   reiAtivo = false;
+  vitoriaAtiva = false;
   corridorAudio?.pause();
   kingAudio?.pause();
+  if (victoryAudio) {
+    victoryAudio.pause();
+    victoryAudio.currentTime = 0;
+  }
 }
 
 /** Inicia a música do corredor em loop (do início do jogo até a sala do rei). */
@@ -130,14 +149,36 @@ export function stopKingMusic() {
   kingAudio?.pause();
 }
 
+/** Inicia a música da cena de vitória em loop (sempre do início). */
+export function playVictoryMusic() {
+  vitoriaAtiva = true;
+  const audio = getVictoryAudio();
+  audio.currentTime = 0;
+  tentarTocar(audio, "vitoria");
+}
+
+/** Encerra a música da cena de vitória. */
+export function stopVictoryMusic() {
+  vitoriaAtiva = false;
+  if (victoryAudio) {
+    victoryAudio.pause();
+    victoryAudio.currentTime = 0;
+  }
+}
+
 /** Pausa a música de jogo durante a transição da coroa. */
 export function pauseMusicForCrown() {
   corridorAudio?.pause();
   kingAudio?.pause();
+  victoryAudio?.pause();
 }
 
 /** Retoma a música de jogo após a transição da coroa. */
 export function resumeMusicAfterCrown() {
+  if (vitoriaAtiva) {
+    tentarTocar(getVictoryAudio(), "vitoria");
+    return;
+  }
   if (reiAtivo) {
     tentarTocar(getKingAudio(), "rei");
     return;
