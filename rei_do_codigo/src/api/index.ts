@@ -5,18 +5,20 @@ import type {
   DesafioCodigo,
   Inimigo,
   Linguagem,
+  NivelDificuldade,
   Pergunta,
   ResultadoAcao,
+  TerminalSessao,
   Usuario,
 } from "./types";
 
 export * from "./types";
 export { ApiError } from "./client";
 
-export function criarUsuario(nome: string, linguagem: Linguagem) {
+export function criarUsuario(nome: string, linguagem: Linguagem, nivel: NivelDificuldade) {
   return apiFetch<Usuario>("/api/usuarios", {
     method: "POST",
-    body: JSON.stringify({ nome, linguagem }),
+    body: JSON.stringify({ nome, linguagem, nivel }),
   });
 }
 
@@ -69,6 +71,29 @@ export function responderPergunta(
 
 export function obterDesafio(batalhaId: number) {
   return apiFetch<DesafioCodigo>(`/api/batalhas/${batalhaId}/desafio`);
+}
+
+export function iniciarTerminal(batalhaId: number, codigo: string) {
+  return apiFetch<TerminalSessao>(`/api/batalhas/${batalhaId}/terminal/iniciar`, {
+    method: "POST",
+    body: JSON.stringify({ codigo }),
+  });
+}
+
+export function enviarEntradaTerminal(batalhaId: number, sessionId: string, linha: string) {
+  return apiFetch<TerminalSessao>(
+    `/api/batalhas/${batalhaId}/terminal/${sessionId}/entrada`,
+    {
+      method: "POST",
+      body: JSON.stringify({ linha }),
+    },
+  );
+}
+
+export function encerrarTerminal(batalhaId: number, sessionId: string) {
+  return apiFetch<void>(`/api/batalhas/${batalhaId}/terminal/${sessionId}/encerrar`, {
+    method: "POST",
+  });
 }
 
 export function submeterCodigo(batalhaId: number, codigo: string) {

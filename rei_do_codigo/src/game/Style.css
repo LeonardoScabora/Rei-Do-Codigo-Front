@@ -1,7 +1,7 @@
 .rk-content.rk-game {
   max-width: 920px;
-  width: min(920px, 96vw);
-  max-height: 100vh;
+  width: min(920px, calc(96vw / var(--ui-zoom)));
+  max-height: calc(100vh / var(--ui-zoom));
   overflow-x: hidden;
   overflow-y: auto;
   min-width: 0;
@@ -132,39 +132,6 @@
   flex-wrap: wrap;
 }
 
-.rk-vidas {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 140px;
-}
-
-.rk-vidas-label {
-  font-family: "Press Start 2P", monospace;
-  font-size: 9px;
-  color: #c8ffdc;
-}
-
-.rk-vidas-hearts {
-  display: flex;
-  gap: 4px;
-  font-size: 18px;
-}
-
-.rk-heart-on {
-  color: #ff6b6b;
-  text-shadow: 0 0 8px rgba(255, 80, 80, 0.6);
-}
-
-.rk-heart-off {
-  color: #2a4030;
-}
-
-.rk-vidas-inimigo .rk-heart-on {
-  color: #6cff9a;
-  text-shadow: 0 0 8px rgba(80, 255, 140, 0.55);
-}
-
 .rk-quiz-panel,
 .rk-desafio-info,
 .rk-terminal-out,
@@ -173,12 +140,102 @@
   margin-top: 10px;
 }
 
+/* ===== Cabeçalho do painel de quiz ===== */
+.rk-quiz-emblem {
+  width: 52px;
+  height: 52px;
+  margin: 2px auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #7fd98f;
+  background: radial-gradient(circle at 50% 40%, #0d1a14, #050a08 75%);
+  border: 2px solid #2c4237;
+  outline: 1px solid rgba(0, 255, 157, 0.2);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 16px rgba(0, 255, 157, 0.2),
+    inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.rk-quiz-ribbon {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 10px;
+  padding: 9px 26px;
+  box-sizing: border-box;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-align: center;
+  color: #e6d4ff;
+  text-shadow: 0 0 8px rgba(160, 90, 255, 0.7);
+  background: linear-gradient(180deg, #5a3390, #2c1a45 80%);
+  border: 1.5px solid #7a52b8;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0 50%);
+}
+
+.rk-quiz-counter {
+  margin: 0 0 12px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  color: #9ad4ad;
+}
+
+.rk-quiz-counter::before {
+  content: "❖ ";
+  color: #3fbf7f;
+}
+
+.rk-quiz-counter::after {
+  content: " ❖";
+  color: #3fbf7f;
+}
+
+/* ===== Caixa da pergunta ===== */
+.rk-quiz-question {
+  position: relative;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  background: rgba(6, 14, 11, 0.85);
+  border: 1.5px solid #2c4237;
+  outline: 1px solid rgba(0, 255, 157, 0.12);
+  outline-offset: 3px;
+}
+
+.rk-quiz-question::before,
+.rk-quiz-question::after {
+  content: "◆";
+  position: absolute;
+  top: -9px;
+  font-size: 10px;
+  color: #3fbf7f;
+  background: #060c10;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.rk-quiz-question::before {
+  left: 10px;
+}
+
+.rk-quiz-question::after {
+  right: 10px;
+}
+
 .rk-quiz-enunciado {
   font-family: "Cinzel", serif;
-  font-size: 18px;
-  color: #c8ffdc;
-  margin: 0 0 16px;
-  line-height: 1.45;
+  font-size: 17px;
+  color: #eafff2;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .rk-quiz-ordem {
@@ -196,26 +253,65 @@
 }
 
 .rk-quiz-option {
-  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
   text-align: left;
-  font-size: 11px;
-  line-height: 1.4;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  color: #c8ffdc;
+  background: rgba(8, 16, 13, 0.85);
+  border: 1.5px solid #2c4237;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.rk-quiz-option:hover:not(:disabled),
+.rk-quiz-option:focus-visible {
+  background: rgba(0, 255, 157, 0.08);
+  border-color: #3fbf7f;
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.3);
+  outline: none;
 }
 
 .rk-quiz-option:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  opacity: 0.7;
+  cursor: default;
+}
+
+.rk-quiz-texto {
+  min-width: 0;
+  word-break: break-word;
 }
 
 .rk-quiz-letter {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #6cff9a;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  box-sizing: border-box;
   font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: #052014;
+  background: #00ff9d;
+  border: 1px solid #052014;
+  box-shadow: 0 0 8px rgba(0, 255, 157, 0.5);
+}
+
+.rk-quiz-letter__glyph {
+  display: block;
+  line-height: 1;
+  letter-spacing: 0;
+  /* Press Start 2P: glyph sits high and slightly to the right in the em box. */
+  transform: translate(1px, 1.5px);
 }
 
 .rk-error {
@@ -237,6 +333,47 @@
 
 .rk-feedback.rk-ok {
   color: #6cff9a;
+}
+
+.rk-feedback.rk-bad {
+  color: #ff8a8a;
+}
+
+.rk-quiz-option--ok {
+  border-color: #00ff9d !important;
+  box-shadow:
+    0 0 14px rgba(0, 255, 157, 0.55),
+    inset 0 0 10px rgba(0, 255, 157, 0.12);
+}
+
+.rk-quiz-option--bad {
+  border-color: #ff5a5a !important;
+  box-shadow:
+    0 0 12px rgba(255, 90, 90, 0.45),
+    inset 0 0 10px rgba(255, 90, 90, 0.1);
+}
+
+/* Revela a alternativa correta quando o jogador erra */
+.rk-quiz-option--correct {
+  border-color: #00ff9d !important;
+  background: rgba(0, 255, 157, 0.12) !important;
+  box-shadow:
+    0 0 16px rgba(0, 255, 157, 0.6),
+    inset 0 0 12px rgba(0, 255, 157, 0.15);
+}
+
+.rk-quiz-correct-tag {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #6cff9a;
+  text-shadow: 0 0 6px rgba(108, 255, 154, 0.8);
+}
+
+.rk-quiz-advance {
+  margin-top: 14px;
+  justify-content: flex-end;
 }
 
 .rk-io-examples {
@@ -268,6 +405,115 @@
   color: #ff8a8a !important;
 }
 
+.rk-side-panel--code {
+  text-align: left;
+}
+
+.rk-side-panel--code .rk-side-panel__title,
+.rk-side-panel--code .rk-quiz-enunciado,
+.rk-side-panel--code .rk-desafio-info,
+.rk-side-panel--code .rk-io-examples,
+.rk-side-panel--code .rk-terminal-out {
+  text-align: left;
+}
+
+.rk-live-terminal {
+  width: 100%;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.rk-live-terminal > strong {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: #4fce7c;
+  text-align: left;
+}
+
+.rk-live-terminal__body {
+  margin-top: 6px;
+  min-height: 140px;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 10px 12px;
+  background: #020805;
+  border: 1px solid #2e9c57;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #d2ffe0;
+  text-align: left;
+}
+
+.rk-term-sys {
+  color: #4fce7c;
+  opacity: 0.85;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.rk-live-terminal__log,
+.rk-live-terminal__err {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: left;
+}
+
+.rk-live-terminal__err {
+  color: #ff8a8a;
+}
+
+.rk-term-input-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 0;
+  text-align: left;
+}
+
+.rk-term-tail {
+  color: #d2ffe0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.rk-term-input-form {
+  display: inline-flex;
+  flex: 1;
+  min-width: 4ch;
+  margin: 0;
+}
+
+.rk-term-input {
+  width: 100%;
+  min-width: 4ch;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f0fff4;
+  caret-color: #6cff9a;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+  padding: 0;
+  text-align: left;
+}
+
+.rk-io-examples pre,
+.rk-terminal-out pre {
+  text-align: left;
+}
+
 .rk-editor-wrap {
   position: relative;
   width: 100%;
@@ -290,6 +536,7 @@
 
 .rk-code-actions {
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .rk-confirm-btn:disabled {

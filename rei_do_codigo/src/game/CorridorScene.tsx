@@ -1,9 +1,19 @@
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Inimigo } from "../api";
-import KnightSprite, { type KnightPose } from "./sprites/KnightSprite";
+import CodeEnergyBlast from "./components/CodeEnergyBlast";
+import EnemyArrow from "./components/EnemyArrow";
+import MageMagic from "./components/MageMagic";
+import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
+import { enemyStackClass, isGoblinInimigo, usesLongChargeMove } from "./enemyKind";
+import type { KingAttackVariant } from "./sprites/KingSprite";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
+export type EnemyMovePhase = "none" | "charge" | "atKnight" | "retreat";
+export type ArenaKind = "corridor" | "first" | "throne";
+
+type BlastPoint = { x: number; y: number };
 
 type Props = {
   mode: CorridorMode;
@@ -11,14 +21,40 @@ type Props = {
   inimigo: Inimigo | null;
   enemyVisible: boolean;
   knightPose: KnightPose;
+  onKnightDefeatComplete?: () => void;
   enemyPose: EnemyPose;
+  enemyFlipped?: boolean;
+  enemyMovePhase?: EnemyMovePhase;
+  onEnemyAnimationComplete?: () => void;
+  onEnemyAttackComplete?: () => void;
   vidaJogador?: number;
   vidaInimigo?: number;
   compact?: boolean;
+  energyBlast?: boolean;
+  onEnergyBlastHit?: () => void;
+  enemyArrow?: boolean;
+  onEnemyArrowHit?: () => void;
+  arrowDurationMs?: number;
+  mageMagic?: boolean;
+  onMageMagicHit?: () => void;
+  onMageMagicComplete?: () => void;
+  /** Arena estática: primeiro inimigo, sala do trono, ou corredor com scroll. */
+  arenaKind?: ArenaKind;
+  knightEntering?: boolean;
+  knightWaitingEnter?: boolean;
+  knightExiting?: boolean;
+  enemyScrollWaiting?: boolean;
+  scrollActive?: boolean;
+  walkDurationMs?: number;
+  onKnightEnterComplete?: () => void;
+  enemyChargeMs?: number;
+  enemyRetreatMs?: number;
+  kingAttack?: KingAttackVariant;
 };
 
 /**
  * Cavaleiro fica fixo na tela; o cenário (e o inimigo no mundo) se movem.
+ * Ataque de teste: animação no lugar + rajada de energia até o inimigo.
  */
 export default function CorridorScene({
   mode,
@@ -26,57 +62,274 @@ export default function CorridorScene({
   inimigo,
   enemyVisible,
   knightPose,
+  onKnightDefeatComplete,
   enemyPose,
+  enemyFlipped = false,
+  enemyMovePhase = "none",
+  onEnemyAnimationComplete,
+  onEnemyAttackComplete,
   vidaJogador,
   vidaInimigo,
   compact = false,
+  energyBlast = false,
+  onEnergyBlastHit,
+  enemyArrow = false,
+  onEnemyArrowHit,
+  arrowDurationMs = 520,
+  mageMagic = false,
+  onMageMagicHit,
+  onMageMagicComplete,
+  arenaKind = "corridor",
+  knightEntering = false,
+  knightWaitingEnter = false,
+  knightExiting = false,
+  enemyScrollWaiting = false,
+  scrollActive = false,
+  walkDurationMs = 5000,
+  onKnightEnterComplete,
+  enemyChargeMs = 720,
+  enemyRetreatMs = 720,
+  kingAttack = 1,
 }: Props) {
+  const actorsRef = useRef<HTMLDivElement>(null);
+  const knightVisualRef = useRef<HTMLDivElement>(null);
+  const enemySlotRef = useRef<HTMLDivElement>(null);
+  const [blastPoints, setBlastPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
+  const [arrowPoints, setArrowPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
+  const [mageSpellPoints, setMageSpellPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(
+    null,
+  );
+
+  const measureBlastPoints = useCallback(() => {
+    const actors = actorsRef.current;
+    const knight = knightVisualRef.current;
+    const enemy = enemySlotRef.current;
+    if (!actors || !knight || !enemy) return null;
+
+    const actorsRect = actors.getBoundingClientRect();
+    const knightRect = knight.getBoundingClientRect();
+    const enemyRect = enemy.getBoundingClientRect();
+
+    return {
+      from: {
+        x: knightRect.right - actorsRect.left - 6,
+        y: knightRect.top - actorsRect.top + knightRect.height * 0.42,
+      },
+      to: {
+        x: enemyRect.left - actorsRect.left + 18,
+        y: enemyRect.top - actorsRect.top + enemyRect.height * 0.5,
+      },
+    };
+  }, []);
+
+  const measureArrowPoints = useCallback(() => {
+    const actors = actorsRef.current;
+    const knight = knightVisualRef.current;
+    const enemy = enemySlotRef.current;
+    if (!actors || !knight || !enemy) return null;
+
+    const actorsRect = actors.getBoundingClientRect();
+    const knightRect = knight.getBoundingClientRect();
+    const enemyRect = enemy.getBoundingClientRect();
+
+    return {
+      from: {
+        x: enemyRect.left - actorsRect.left + enemyRect.width * 0.22,
+        y: enemyRect.top - actorsRect.top + enemyRect.height * 0.42,
+      },
+      to: {
+        x: knightRect.left - actorsRect.left + knightRect.width * 0.55,
+        y: knightRect.top - actorsRect.top + knightRect.height * 0.42,
+      },
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!energyBlast) {
+      setBlastPoints(null);
+      return;
+    }
+    setBlastPoints(measureBlastPoints());
+  }, [energyBlast, measureBlastPoints]);
+
+  useLayoutEffect(() => {
+    if (!enemyArrow) {
+      setArrowPoints(null);
+      return;
+    }
+    setArrowPoints(measureArrowPoints());
+  }, [enemyArrow, measureArrowPoints]);
+
+  useLayoutEffect(() => {
+    if (!mageMagic) {
+      setMageSpellPoints(null);
+      return;
+    }
+    setMageSpellPoints(measureArrowPoints());
+  }, [mageMagic, measureArrowPoints]);
+
+  const staticArena = arenaKind === "first" || arenaKind === "throne";
+  const backgroundSrc =
+    arenaKind === "throne"
+      ? "/game/fundo-trono.png"
+      : arenaKind === "first"
+        ? "/game/fundo-corredor-completo.png"
+        : "/game/fundo-corredor.png";
+
+  const sceneStyle = {
+    "--rk-walk-ms": `${walkDurationMs}ms`,
+    "--rk-scroll-ms": `${walkDurationMs}ms`,
+    "--rk-goblin-charge-ms": `${enemyChargeMs}ms`,
+    "--rk-goblin-retreat-ms": `${enemyRetreatMs}ms`,
+  } as React.CSSProperties;
+
+  const sceneClass = [
+    "rk-scene",
+    compact && "rk-scene--compact",
+    scrolling && "rk-scene--scroll",
+    scrollActive && "rk-scene--scroll-active",
+    staticArena && "rk-scene--arena",
+    arenaKind === "throne" && "rk-scene--throne",
+    mode === "dialogue" && "rk-scene--dialogue",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const arenaBackdropStyle =
+    staticArena
+      ? {
+          backgroundImage: `url("${backgroundSrc}")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+          backgroundRepeat: "no-repeat",
+        }
+      : undefined;
+
   return (
-    <div className={`rk-scene${compact ? " rk-scene--compact" : ""}${scrolling ? " rk-scene--scroll" : ""}`}>
-      <div className="rk-scene__sky" />
-      <div className="rk-scene__far" />
-      <div className="rk-scene__mid" />
-      <div className="rk-scene__floor" />
-      <div className="rk-scene__torches" aria-hidden>
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-
-      <div className="rk-scene__actors">
-        <div className="rk-scene__knight-slot">
-          <KnightSprite pose={knightPose} />
-          {mode === "battle" && typeof vidaJogador === "number" && (
-            <div className="rk-scene__hp rk-scene__hp--player">
-              <VidasBar label="Você" atual={vidaJogador} maxima={3} />
-            </div>
-          )}
-        </div>
-
-        {inimigo && enemyVisible && (
-          <div className={`rk-scene__enemy-slot rk-scene__enemy-slot--${mode}`}>
-            <EnemySprite
-              nome={inimigo.nome}
-              ehRei={inimigo.ehRei}
-              pose={enemyPose}
-            />
-            {mode === "battle" && typeof vidaInimigo === "number" && (
-              <div className="rk-scene__hp rk-scene__hp--enemy">
-                <VidasBar
-                  label={inimigo.nome}
-                  atual={vidaInimigo}
-                  maxima={inimigo.vidaMaxima}
-                  variante="inimigo"
-                />
-              </div>
-            )}
+    <div className={sceneClass} style={sceneStyle}>
+      <div className="rk-scene__backdrop" aria-hidden style={arenaBackdropStyle}>
+        {arenaKind === "corridor" && (
+          <div className="rk-scene__backdrop-track">
+            <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
+            <img className="rk-scene__backdrop-img" src={backgroundSrc} alt="" draggable={false} />
           </div>
         )}
       </div>
 
+      <div ref={actorsRef} className="rk-scene__actors">
+        <div
+          className={`rk-scene__knight-slot${knightWaitingEnter ? " rk-scene__knight-slot--waiting-enter" : ""}${knightEntering ? " rk-scene__knight-slot--entering" : ""}${knightExiting ? " rk-scene__knight-slot--exiting" : ""}`}
+          onAnimationEnd={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (!knightEntering || !onKnightEnterComplete) return;
+            if (
+              event.animationName !== "rk-knight-enter" &&
+              event.animationName !== "rk-knight-enter-corridor"
+            ) {
+              return;
+            }
+            onKnightEnterComplete();
+          }}
+        >
+          <div className="rk-scene__knight-move">
+            <div className="rk-knight-stack">
+              {mode === "battle" && typeof vidaJogador === "number" && (
+                <div className="rk-scene__hp rk-scene__hp--player">
+                  <VidasBar label="Você" atual={vidaJogador} maxima={3} />
+                </div>
+              )}
+              <div ref={knightVisualRef} className="rk-knight-visual">
+                <KnightSprite
+                  pose={knightPose}
+                  onAnimationComplete={
+                    knightPose === "defeat" ? onKnightDefeatComplete : undefined
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {inimigo && enemyVisible && (
+          <div
+            ref={enemySlotRef}
+            className={[
+              "rk-scene__enemy-slot",
+              `rk-scene__enemy-slot--${
+                (inimigo.ehRei || isGoblinInimigo(inimigo)) && mode === "walking"
+                  ? "stationed"
+                  : mode
+              }`,
+              enemyScrollWaiting && "rk-scene__enemy-slot--scroll-wait",
+              enemyMovePhase === "charge" &&
+                (usesLongChargeMove(inimigo)
+                  ? "rk-scene__enemy-slot--charge-knight"
+                  : "rk-scene__enemy-slot--charge"),
+              enemyMovePhase === "atKnight" && "rk-scene__enemy-slot--at-knight",
+              enemyMovePhase === "retreat" &&
+                (usesLongChargeMove(inimigo)
+                  ? "rk-scene__enemy-slot--retreat-knight"
+                  : "rk-scene__enemy-slot--retreat"),
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <div className={`rk-enemy-stack${enemyStackClass(inimigo)}`}>
+              {mode === "battle" && typeof vidaInimigo === "number" && (
+                <div className="rk-scene__hp rk-scene__hp--enemy">
+                  <VidasBar
+                    label={inimigo.nome}
+                    atual={vidaInimigo}
+                    maxima={inimigo.vidaMaxima}
+                    variante="inimigo"
+                  />
+                </div>
+              )}
+              <div className="rk-enemy-visual">
+                <EnemySprite
+                  nome={inimigo.nome}
+                  ehRei={inimigo.ehRei}
+                  pose={enemyPose}
+                  flipped={enemyFlipped}
+                  movePhase={enemyMovePhase}
+                  kingAttack={kingAttack}
+                  onAnimationComplete={onEnemyAnimationComplete}
+                  onAttackComplete={onEnemyAttackComplete}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {energyBlast && blastPoints && (
+          <CodeEnergyBlast
+            from={blastPoints.from}
+            to={blastPoints.to}
+            durationMs={KNIGHT_BLAST_MS}
+            onHit={onEnergyBlastHit}
+          />
+        )}
+
+        {enemyArrow && arrowPoints && (
+          <EnemyArrow
+            from={arrowPoints.from}
+            to={arrowPoints.to}
+            durationMs={arrowDurationMs}
+            onHit={onEnemyArrowHit}
+          />
+        )}
+
+        {mageMagic && mageSpellPoints && (
+          <MageMagic
+            from={mageSpellPoints.from}
+            to={mageSpellPoints.to}
+            onHit={onMageMagicHit}
+            onComplete={onMageMagicComplete}
+          />
+        )}
+      </div>
+
       <div className="rk-scene__vignette" />
-      <p className="rk-scene__label">Corredor Real</p>
     </div>
   );
 }

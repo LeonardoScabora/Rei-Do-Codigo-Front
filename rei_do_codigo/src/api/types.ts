@@ -1,4 +1,5 @@
 export type Linguagem = "JAVA" | "PYTHON" | "CPP";
+export type NivelDificuldade = "INICIANTE" | "INTERMEDIARIO" | "AVANCADO";
 export type TipoInimigo = "MULTIPLA_ESCOLHA" | "CODIGO";
 export type StatusBatalha = "EM_ANDAMENTO" | "VITORIA" | "DERROTA";
 
@@ -6,6 +7,7 @@ export interface Usuario {
   id: number;
   nome: string;
   linguagem: Linguagem;
+  nivel: NivelDificuldade;
   progresso: number;
   venceuRei: boolean;
 }
@@ -31,6 +33,8 @@ export interface Batalha {
   status: StatusBatalha;
   perguntaAtual: number;
   ehRei: boolean;
+  /** Rei: última vida é desafio de algoritmo. */
+  faseCodigo?: boolean;
 }
 
 export interface Pergunta {
@@ -61,6 +65,18 @@ export interface ResultadoAcao {
   mensagem: string;
   stdout?: string;
   stderr?: string;
+  /** Alternativa correta da pergunta respondida (só em batalhas de múltipla escolha). */
+  alternativaCorreta?: Alternativa | null;
+}
+
+export interface TerminalSessao {
+  sessionId?: string | null;
+  stdout?: string;
+  stderr?: string;
+  aguardandoEntrada: boolean;
+  finalizado: boolean;
+  sucesso: boolean;
+  mensagem?: string | null;
 }
 
 export type Alternativa = "A" | "B" | "C" | "D";

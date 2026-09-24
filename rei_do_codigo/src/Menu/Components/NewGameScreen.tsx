@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { DIFFICULTIES, type DifficultyKey } from "../difficulty";
 import type { LanguageKey } from "../language";
+import { MenuBanner, MenuFrame } from "./MenuChrome";
 
 const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
   { key: "java", label: "Java", color: "#F58219" },
@@ -78,16 +80,22 @@ export default function NewGameScreen({
   onConfirm,
   submitting = false,
   error = null,
+  nomeInicial = null,
 }: {
   onBack: () => void;
-  onConfirm: (nome: string, lang: LanguageKey) => void;
+  onConfirm: (nome: string, lang: LanguageKey, difficulty: DifficultyKey) => void;
   submitting?: boolean;
   error?: string | null;
+  /** Quando definido (ex.: nova jornada de um save vencido), pula a etapa do nome. */
+  nomeInicial?: string | null;
 }) {
   const [keyboardIndex, setKeyboardIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [selected, setSelected] = useState<LanguageKey | null>(null);
-  const [nome, setNome] = useState("");
+  const [difficulty, setDifficulty] = useState<DifficultyKey | null>(null);
+  const [diffHover, setDiffHover] = useState<number | null>(null);
+  const [nome, setNome] = useState(nomeInicial ?? "");
+  const nomeFixo = Boolean(nomeInicial);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -106,9 +114,9 @@ export default function NewGameScreen({
         });
       } else if (e.key === "Enter") {
         const activeIdx = hoverIndex ?? keyboardIndex;
-        if (selected && nome.trim()) {
+        if (selected && difficulty && nome.trim()) {
           confirmSelection();
-        } else if (activeIdx !== null) {
+        } else if (!selected && activeIdx !== null) {
           setSelected(LANGUAGES[activeIdx].key);
         }
       } else if (e.key === "Escape") {
@@ -117,51 +125,84 @@ export default function NewGameScreen({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [keyboardIndex, hoverIndex, selected, nome, onBack]);
+  }, [keyboardIndex, hoverIndex, selected, difficulty, nome, onBack]);
 
   function confirmSelection() {
-    if (selected && nome.trim() && !submitting) {
-      onConfirm(nome.trim(), selected);
+    if (selected && difficulty && nome.trim() && !submitting) {
+      onConfirm(nome.trim(), selected, difficulty);
     }
   }
 
   const activeIndex = hoverIndex !== null ? hoverIndex : keyboardIndex;
-  const canConfirm = Boolean(selected && nome.trim() && !submitting);
+  const canConfirm = Boolean(selected && difficulty && nome.trim() && !submitting);
 
   return (
-    <>
-      <div className="rk-panel">
-        <div className="rk-subtitle">
-          <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
-        </div>
+    <MenuFrame label="Novo jogo">
+      <div className="rk-subtitle">
+        <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
+      </div>
 
+      <div className="rk-newgame-panel">
         {LANGUAGES.map((lang, i) => {
           const isActive = activeIndex === i;
           const isSelected = selected === lang.key;
 
           return (
-            <button
+            <MenuBanner
               key={lang.key}
-              type="button"
-              className={`rk-item rk-lang-item${isActive ? " rk-hovered" : ""}${
-                isSelected ? " rk-selected" : ""
-              }`}
+              icon={<LangIcon lang={lang.key} color={lang.color} />}
+              selected={isSelected}
+              hot={isActive}
               disabled={submitting}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
               onClick={() => {
                 setHoverIndex(i);
                 setSelected(lang.key);
+                setDifficulty(null);
+                if (!nomeFixo) setNome("");
               }}
             >
-              {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
-              <LangIcon lang={lang.key} color={lang.color} />
-              <span>{lang.label}</span>
-            </button>
+              {lang.label}
+            </MenuBanner>
           );
         })}
 
         {selected && (
+          <div className="rk-difficulty-block">
+            <div className="rk-subtitle rk-subtitle-nested">
+              <span className="rk-diamond-sm" /> Seu nível <span className="rk-diamond-sm" />
+            </div>
+            <div className="rk-difficulty-list">
+              {DIFFICULTIES.map((diff, i) => {
+                const isActive = diffHover === i;
+                const isSelected = difficulty === diff.key;
+                return (
+                  <MenuBanner
+                    key={diff.key}
+                    hint={diff.hint}
+                    selected={isSelected}
+                    hot={isActive}
+                    disabled={submitting}
+                    onMouseEnter={() => setDiffHover(i)}
+                    onMouseLeave={() => setDiffHover(null)}
+                    onClick={() => setDifficulty(diff.key)}
+                  >
+                    {diff.label}
+                  </MenuBanner>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {selected && difficulty && nomeFixo && (
+          <div className="rk-subtitle rk-subtitle-nested rk-name-fixed">
+            <span className="rk-diamond-sm" /> Guerreiro: {nome} <span className="rk-diamond-sm" />
+          </div>
+        )}
+
+        {selected && difficulty && !nomeFixo && (
           <div className="rk-name-field rk-name-field-after">
             <label htmlFor="player-name">Nome do guerreiro</label>
             <input
@@ -183,17 +224,16 @@ export default function NewGameScreen({
 
       {error && <p className="rk-error">{error}</p>}
 
-      <div className="rk-actions">
-        <button type="button" className="rk-back-btn" onClick={onBack} disabled={submitting}>
-          ‹ Voltar
-        </button>
-
+      <div className="rk-menu-actions">
+        <MenuBanner chevron="left" disabled={submitting} onClick={onBack}>
+          Voltar
+        </MenuBanner>
         {canConfirm && (
-          <button type="button" className="rk-back-btn rk-confirm-btn" onClick={confirmSelection}>
-            {submitting ? "Criando..." : "Confirmar ›"}
-          </button>
+          <MenuBanner disabled={submitting} onClick={confirmSelection}>
+            {submitting ? "Criando..." : "Confirmar"}
+          </MenuBanner>
         )}
       </div>
-    </>
+    </MenuFrame>
   );
 }

@@ -1,0 +1,11 @@
+services:
+  frontend:
+    container_name: frontreidocodigo
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:80"
+    restart: unless-stopped
