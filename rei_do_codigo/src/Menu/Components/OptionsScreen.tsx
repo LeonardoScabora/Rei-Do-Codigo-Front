@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import AudioOptionsPanel from "../../Components/AudioOptionsPanel";
+import { MenuBanner, MenuFrame } from "./MenuChrome";
 
 export default function OptionsScreen({ onBack }: { onBack: () => void }) {
   useEffect(() => {
@@ -11,20 +12,18 @@ export default function OptionsScreen({ onBack }: { onBack: () => void }) {
   }, [onBack]);
 
   return (
-    <>
-      <div className="rk-panel">
-        <div className="rk-subtitle">
-          <span className="rk-diamond-sm" /> Opções <span className="rk-diamond-sm" />
-        </div>
-
-        <AudioOptionsPanel />
+    <MenuFrame label="Opções">
+      <div className="rk-subtitle">
+        <span className="rk-diamond-sm" /> Opções <span className="rk-diamond-sm" />
       </div>
 
-      <div className="rk-actions">
-        <button type="button" className="rk-back-btn" onClick={onBack}>
-          ‹ Voltar
-        </button>
+      <AudioOptionsPanel />
+
+      <div className="rk-menu-actions">
+        <MenuBanner chevron="left" onClick={onBack}>
+          Voltar
+        </MenuBanner>
       </div>
-    </>
+    </MenuFrame>
   );
 }

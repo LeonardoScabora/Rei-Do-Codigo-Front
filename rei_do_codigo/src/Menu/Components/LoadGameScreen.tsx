@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { excluirUsuario, listarUsuarios, type Usuario } from "../../api";
 import { labelNivel } from "../difficulty";
 import { labelLinguagem } from "../language";
+import { MenuBanner, MenuFrame } from "./MenuChrome";
 
 type Props = {
   onBack: () => void;
@@ -65,74 +66,58 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
   }
 
   return (
-    <>
-      <div className="rk-panel">
-        <div className="rk-subtitle">
-          <span className="rk-diamond-sm" /> Carregar Jogo <span className="rk-diamond-sm" />
+    <MenuFrame label="Carregar jogo">
+      <div className="rk-subtitle">
+        <span className="rk-diamond-sm" /> Carregar Jogo <span className="rk-diamond-sm" />
+      </div>
+
+      {carregando && <p className="rk-save-empty">Buscando progressos...</p>}
+      {erro && <p className="rk-error">{erro}</p>}
+
+      {!carregando && !erro && usuarios.length === 0 && (
+        <p className="rk-save-empty">Nenhum progresso salvo no banco.</p>
+      )}
+
+      {!carregando && usuarios.length > 0 && (
+        <div className="rk-save-list">
+          {usuarios.map((usuario) => {
+            const ativo = selecionadoId === usuario.id;
+            return (
+              <div key={usuario.id} className="rk-save-block">
+                <MenuBanner
+                  selected={ativo}
+                  hint={textoProgresso(usuario)}
+                  onClick={() => setSelecionadoId((id) => (id === usuario.id ? null : usuario.id))}
+                >
+                  {usuario.nome} · {labelLinguagem(usuario.linguagem)} · {labelNivel(usuario.nivel)}
+                </MenuBanner>
+
+                {ativo && (
+                  <div className="rk-menu-actions">
+                    <MenuBanner
+                      tone="danger"
+                      chevron="left"
+                      disabled={excluindo}
+                      onClick={() => void handleExcluir()}
+                    >
+                      {excluindo ? "Excluindo..." : "Excluir"}
+                    </MenuBanner>
+                    <MenuBanner disabled={excluindo} onClick={() => onLoad(usuario)}>
+                      Continuar
+                    </MenuBanner>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+      )}
 
-        {carregando && <p className="rk-save-empty">Buscando progressos...</p>}
-        {erro && <p className="rk-error">{erro}</p>}
-
-        {!carregando && !erro && usuarios.length === 0 && (
-          <p className="rk-save-empty">Nenhum progresso salvo no banco.</p>
-        )}
-
-        {!carregando && usuarios.length > 0 && (
-          <div className="rk-save-list">
-            {usuarios.map((usuario) => {
-              const ativo = selecionadoId === usuario.id;
-              return (
-                <div key={usuario.id} className="rk-save-block">
-                  <button
-                    type="button"
-                    className={`rk-save-item rk-save-item-btn${ativo ? " rk-selected" : ""}`}
-                    onClick={() =>
-                      setSelecionadoId((id) => (id === usuario.id ? null : usuario.id))
-                    }
-                  >
-                    <div className="rk-save-info">
-                      <span className="rk-save-lang">
-                        {usuario.nome} · {labelLinguagem(usuario.linguagem)} ·{" "}
-                        {labelNivel(usuario.nivel)}
-                      </span>
-                      <span className="rk-save-meta">{textoProgresso(usuario)}</span>
-                    </div>
-                    {ativo && <span className="rk-arrow rk-save-arrow">▶</span>}
-                  </button>
-
-                  {ativo && (
-                    <div className="rk-save-actions">
-                      <button
-                        type="button"
-                        className="rk-back-btn rk-save-delete-btn"
-                        disabled={excluindo}
-                        onClick={() => void handleExcluir()}
-                      >
-                        {excluindo ? "Excluindo..." : "Excluir"}
-                      </button>
-                      <button
-                        type="button"
-                        className="rk-back-btn rk-confirm-btn"
-                        disabled={excluindo}
-                        onClick={() => onLoad(usuario)}
-                      >
-                        Continuar ›
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <div className="rk-menu-actions">
+        <MenuBanner chevron="left" onClick={onBack}>
+          Voltar
+        </MenuBanner>
       </div>
-
-      <div className="rk-actions">
-        <button type="button" className="rk-back-btn" onClick={onBack}>
-          ‹ Voltar
-        </button>
-      </div>
-    </>
+    </MenuFrame>
   );
 }

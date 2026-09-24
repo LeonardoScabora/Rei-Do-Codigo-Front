@@ -1,7 +1,7 @@
 .rk-content.rk-game {
   max-width: 920px;
-  width: min(920px, 96vw);
-  max-height: 100vh;
+  width: min(920px, calc(96vw / var(--ui-zoom)));
+  max-height: calc(100vh / var(--ui-zoom));
   overflow-x: hidden;
   overflow-y: auto;
   min-width: 0;

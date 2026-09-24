@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DIFFICULTIES, type DifficultyKey } from "../difficulty";
 import type { LanguageKey } from "../language";
+import { MenuBanner, MenuFrame } from "./MenuChrome";
 
 const LANGUAGES: { key: LanguageKey; label: string; color: string }[] = [
   { key: "java", label: "Java", color: "#F58219" },
@@ -136,23 +137,22 @@ export default function NewGameScreen({
   const canConfirm = Boolean(selected && difficulty && nome.trim() && !submitting);
 
   return (
-    <>
-      <div className="rk-panel rk-newgame-panel">
-        <div className="rk-subtitle">
-          <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
-        </div>
+    <MenuFrame label="Novo jogo">
+      <div className="rk-subtitle">
+        <span className="rk-diamond-sm" /> Escolha sua Linguagem <span className="rk-diamond-sm" />
+      </div>
 
+      <div className="rk-newgame-panel">
         {LANGUAGES.map((lang, i) => {
           const isActive = activeIndex === i;
           const isSelected = selected === lang.key;
 
           return (
-            <button
+            <MenuBanner
               key={lang.key}
-              type="button"
-              className={`rk-item rk-lang-item${isActive ? " rk-hovered" : ""}${
-                isSelected ? " rk-selected" : ""
-              }`}
+              icon={<LangIcon lang={lang.key} color={lang.color} />}
+              selected={isSelected}
+              hot={isActive}
               disabled={submitting}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
@@ -163,10 +163,8 @@ export default function NewGameScreen({
                 if (!nomeFixo) setNome("");
               }}
             >
-              {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
-              <LangIcon lang={lang.key} color={lang.color} />
-              <span>{lang.label}</span>
-            </button>
+              {lang.label}
+            </MenuBanner>
           );
         })}
 
@@ -180,23 +178,18 @@ export default function NewGameScreen({
                 const isActive = diffHover === i;
                 const isSelected = difficulty === diff.key;
                 return (
-                  <button
+                  <MenuBanner
                     key={diff.key}
-                    type="button"
-                    className={`rk-item rk-diff-item${isActive ? " rk-hovered" : ""}${
-                      isSelected ? " rk-selected" : ""
-                    }`}
+                    hint={diff.hint}
+                    selected={isSelected}
+                    hot={isActive}
                     disabled={submitting}
                     onMouseEnter={() => setDiffHover(i)}
                     onMouseLeave={() => setDiffHover(null)}
                     onClick={() => setDifficulty(diff.key)}
                   >
-                    {(isActive || isSelected) && <span className="rk-arrow">▶</span>}
-                    <span className="rk-diff-text">
-                      <span>{diff.label}</span>
-                      <small>{diff.hint}</small>
-                    </span>
-                  </button>
+                    {diff.label}
+                  </MenuBanner>
                 );
               })}
             </div>
@@ -231,17 +224,16 @@ export default function NewGameScreen({
 
       {error && <p className="rk-error">{error}</p>}
 
-      <div className="rk-actions">
-        <button type="button" className="rk-back-btn" onClick={onBack} disabled={submitting}>
-          ‹ Voltar
-        </button>
-
+      <div className="rk-menu-actions">
+        <MenuBanner chevron="left" disabled={submitting} onClick={onBack}>
+          Voltar
+        </MenuBanner>
         {canConfirm && (
-          <button type="button" className="rk-back-btn rk-confirm-btn" onClick={confirmSelection}>
-            {submitting ? "Criando..." : "Confirmar ›"}
-          </button>
+          <MenuBanner disabled={submitting} onClick={confirmSelection}>
+            {submitting ? "Criando..." : "Confirmar"}
+          </MenuBanner>
         )}
       </div>
-    </>
+    </MenuFrame>
   );
 }
