@@ -324,8 +324,55 @@
   letter-spacing: 0.5px;
 }
 
+.rk-game-side:has(.rk-side-panel--code) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rk-side-panel--code .rk-desafio-info {
+  flex: 0 1 auto;
+  margin-top: 0;
+  padding: 10px 12px;
+  max-height: 22%;
+  overflow: auto;
+}
+
+.rk-side-panel--code .rk-quiz-enunciado {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.rk-side-panel--code .rk-io-examples {
+  margin-top: 6px;
+  gap: 8px;
+}
+
+.rk-side-panel--code .rk-io-examples strong {
+  font-size: 7px;
+}
+
+.rk-side-panel--code .rk-io-examples pre {
+  margin-top: 3px;
+  padding: 4px 6px;
+  font-size: 11px;
+  max-height: 2.8em;
+  overflow: auto;
+}
+
 .rk-side-panel--code .rk-editor-wrap {
-  height: 220px;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 340px;
+  margin-top: 8px;
+}
+
+.rk-side-panel--code .rk-code-actions {
+  margin-top: 6px;
+}
+
+.rk-side-panel--code .rk-code-actions .rk-back-btn {
+  margin-top: 0;
 }
 
 /* ===== Footer ===== */

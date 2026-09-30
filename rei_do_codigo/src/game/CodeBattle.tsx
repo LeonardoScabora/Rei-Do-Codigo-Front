@@ -12,7 +12,6 @@ import {
   type ResultadoAcao,
   type TerminalSessao,
 } from "../api";
-import { labelLinguagem } from "../Menu/language";
 
 type Props = {
   batalha: Batalha;
@@ -309,7 +308,6 @@ export default function CodeBattle({
 
   return (
     <div className="rk-side-panel rk-side-panel--code">
-      <p className="rk-side-panel__title">Terminal · {labelLinguagem(linguagem)}</p>
       {carregando && <p className="rk-hint">Carregando desafio...</p>}
       {erro && <p className="rk-error">{erro}</p>}
       {feedback && (
@@ -353,38 +351,35 @@ export default function CodeBattle({
           </div>
 
           {!resultadoPendente && (
-            <div className="rk-panel rk-live-terminal" aria-label="Terminal interativo">
-              <strong>Console</strong>
-              <div className="rk-live-terminal__body">
-                {sysHint && <div className="rk-term-sys">{sysHint}</div>}
-                <pre className="rk-live-terminal__log">{term.log}</pre>
-                {term.err && <pre className="rk-live-terminal__err">{term.err}</pre>}
-                <div className="rk-term-input-row">
-                  <span className="rk-term-tail">{term.tail}</span>
-                  {aguardandoEntrada && (
-                    <form
-                      className="rk-term-input-form"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void enviarLinha();
-                      }}
-                    >
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        className="rk-term-input"
-                        value={inputAtual}
-                        disabled={busyTerminal || disabled}
-                        onChange={(e) => setInputAtual(e.target.value)}
-                        autoComplete="off"
-                        spellCheck={false}
-                        aria-label="Entrada do terminal"
-                      />
-                    </form>
-                  )}
-                </div>
-                <div ref={termEndRef} />
+            <div className="rk-panel rk-live-terminal" aria-label="Console">
+              {sysHint && <div className="rk-term-sys">{sysHint}</div>}
+              <pre className="rk-live-terminal__log">{term.log}</pre>
+              {term.err && <pre className="rk-live-terminal__err">{term.err}</pre>}
+              <div className="rk-term-input-row">
+                <span className="rk-term-tail">{term.tail}</span>
+                {aguardandoEntrada && (
+                  <form
+                    className="rk-term-input-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void enviarLinha();
+                    }}
+                  >
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="rk-term-input"
+                      value={inputAtual}
+                      disabled={busyTerminal || disabled}
+                      onChange={(e) => setInputAtual(e.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                      aria-label="Entrada do terminal"
+                    />
+                  </form>
+                )}
               </div>
+              <div ref={termEndRef} />
             </div>
           )}
 
