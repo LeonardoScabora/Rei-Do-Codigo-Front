@@ -65,7 +65,6 @@ export default function CodeBattle({
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [stdoutTestes, setStdoutTestes] = useState("");
   const [stderrTestes, setStderrTestes] = useState("");
   const [resultadoPendente, setResultadoPendente] = useState<ResultadoAcao | null>(null);
@@ -91,7 +90,6 @@ export default function CodeBattle({
     (async () => {
       setCarregando(true);
       setErro(null);
-      setFeedback(null);
       setStdoutTestes("");
       setStderrTestes("");
       setResultadoPendente(null);
@@ -187,7 +185,6 @@ export default function CodeBattle({
 
     setBusyTerminal(true);
     setErro(null);
-    setFeedback(null);
     setTerm({ log: "", tail: "", err: "" });
     setSessionId(null);
     setAguardandoEntrada(false);
@@ -252,12 +249,10 @@ export default function CodeBattle({
     }
     setEnviando(true);
     setErro(null);
-    setFeedback(null);
     setStdoutTestes("");
     setStderrTestes("");
     try {
       const resultado = await submeterCodigo(batalha.id, codigo);
-      setFeedback(resultado.mensagem);
       setStdoutTestes(resultado.stdout ?? "");
       setStderrTestes(resultado.stderr ?? "");
 
@@ -307,12 +302,10 @@ export default function CodeBattle({
     batalha.status !== "EM_ANDAMENTO";
 
   return (
+    <>
     <div className="rk-side-panel rk-side-panel--code">
       {carregando && <p className="rk-hint">Carregando desafio...</p>}
       {erro && <p className="rk-error">{erro}</p>}
-      {feedback && (
-        <p className={`rk-feedback${resultadoPendente ? " rk-ok" : ""}`}>{feedback}</p>
-      )}
 
       {desafio && (
         <>
@@ -339,7 +332,7 @@ export default function CodeBattle({
               value={codigo}
               onChange={(value) => setCodigo(value ?? "")}
               options={{
-                fontSize: 13,
+                fontSize: 15,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
@@ -430,25 +423,26 @@ export default function CodeBattle({
               </>
             )}
           </div>
-
-          {(stdoutTestes || stderrTestes) && (
-            <div className="rk-panel rk-terminal-out">
-              {stdoutTestes && (
-                <>
-                  <strong>Testes oficiais</strong>
-                  <pre>{stdoutTestes}</pre>
-                </>
-              )}
-              {stderrTestes && (
-                <>
-                  <strong>Stderr</strong>
-                  <pre className="rk-stderr">{stderrTestes}</pre>
-                </>
-              )}
-            </div>
-          )}
         </>
       )}
     </div>
+
+    {(stdoutTestes || stderrTestes) && (
+      <div className="rk-panel rk-terminal-out" aria-label="Testes oficiais">
+        {stdoutTestes && (
+          <>
+            <strong>Testes oficiais</strong>
+            <pre>{stdoutTestes}</pre>
+          </>
+        )}
+        {stderrTestes && (
+          <>
+            <strong>Stderr</strong>
+            <pre className="rk-stderr">{stderrTestes}</pre>
+          </>
+        )}
+      </div>
+    )}
+    </>
   );
 }

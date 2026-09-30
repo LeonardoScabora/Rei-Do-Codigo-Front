@@ -409,8 +409,10 @@
   text-align: left;
   display: flex;
   flex-direction: column;
+  flex: 0 0 auto;
   height: 100%;
-  min-height: 0;
+  min-height: 100%;
+  overflow: visible;
 }
 
 .rk-side-panel--code .rk-side-panel__title,
@@ -432,8 +434,8 @@
   text-align: left;
   background: #020805;
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.45;
   color: #d2ffe0;
 }
 
@@ -494,7 +496,7 @@
   color: #f0fff4;
   caret-color: #6cff9a;
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13px;
+  font-size: 15px;
   padding: 0;
   text-align: left;
 }

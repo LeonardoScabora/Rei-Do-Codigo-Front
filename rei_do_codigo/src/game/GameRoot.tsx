@@ -846,7 +846,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
         </div>
 
         {painelDireito && batalha && inimigoAtual && (
-          <aside className="rk-game-side">
+          <aside className={`rk-game-side${usarPainelCodigo(batalha) ? " rk-game-side--code" : ""}`}>
             {usarPainelCodigo(batalha) ? (
               <CodeBattle
                 batalha={batalha}

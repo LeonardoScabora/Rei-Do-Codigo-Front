@@ -327,20 +327,42 @@
 .rk-game-side:has(.rk-side-panel--code) {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.rk-game-side > .rk-terminal-out {
+  flex: 0 0 auto;
+  max-height: none;
+  margin-top: 10px;
+  overflow: visible;
+}
+
+.rk-game-side > .rk-terminal-out pre {
+  margin: 8px 0 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.rk-game-side--code {
+  width: min(680px, 54vw);
+  min-width: 440px;
+  max-width: 720px;
 }
 
 .rk-side-panel--code .rk-desafio-info {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   margin-top: 0;
   padding: 10px 12px;
-  max-height: 22%;
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .rk-side-panel--code .rk-quiz-enunciado {
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .rk-side-panel--code .rk-io-examples {
@@ -349,14 +371,14 @@
 }
 
 .rk-side-panel--code .rk-io-examples strong {
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .rk-side-panel--code .rk-io-examples pre {
   margin-top: 3px;
-  padding: 4px 6px;
-  font-size: 11px;
-  max-height: 2.8em;
+  padding: 6px 8px;
+  font-size: 14px;
+  max-height: 3.2em;
   overflow: auto;
 }
 
@@ -364,7 +386,13 @@
   flex: 1 1 auto;
   height: auto;
   min-height: 340px;
-  margin-top: 8px;
+  margin-top: 0;
+  border-top: none;
+}
+
+.rk-side-panel--code .rk-panel.rk-live-terminal {
+  margin-top: 0;
+  border-top: none;
 }
 
 .rk-side-panel--code .rk-code-actions {
@@ -1032,7 +1060,7 @@
 .rk-enemy-stack--skeleton .rk-scene__hp--enemy {
   position: absolute;
   left: 50%;
-  bottom: 128px;
+  bottom: 144px;
   transform: translateX(-50%);
   margin: 0;
   z-index: 3;
@@ -1829,7 +1857,8 @@
     flex-direction: column;
   }
 
-  .rk-game-side {
+  .rk-game-side,
+  .rk-game-side--code {
     width: auto;
     max-width: none;
     min-width: 0;
