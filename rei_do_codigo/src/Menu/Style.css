@@ -354,7 +354,7 @@ body {
 }
 
 .rk-menu-entry {
-  display: block;
+  display: flex;
   width: 100%;
   margin: 0 0 12px;
   padding: 2px;
@@ -379,6 +379,8 @@ body {
 
 .rk-menu-entry__face {
   display: grid;
+  width: 100%;
+  box-sizing: border-box;
   grid-template-columns: 40px 16px minmax(0, 1fr) auto;
   align-items: center;
   min-height: 56px;
@@ -428,6 +430,30 @@ body {
 .rk-menu-entry__face--plain {
   grid-template-columns: minmax(0, 1fr) auto;
   padding-left: 26px;
+}
+
+.rk-menu-entry__face--plain.rk-menu-entry__face--lead {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  padding-left: 22px;
+}
+
+.rk-menu-entry__face--plain.rk-menu-entry__face--center {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.rk-menu-entry__face--center .rk-menu-entry__label {
+  text-align: center;
+}
+
+.rk-menu-entry__face--center .rk-menu-entry__chevron {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
 }
 
 .rk-menu-entry__label small {
@@ -484,6 +510,10 @@ body {
 
 .rk-menu-actions:has(> :nth-child(2)) {
   grid-template-columns: 1fr 1fr;
+}
+
+.rk-menu-actions .rk-menu-entry {
+  margin: 0;
 }
 
 .rk-panel--menu .rk-subtitle {

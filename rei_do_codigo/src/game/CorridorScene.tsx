@@ -7,6 +7,7 @@ import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/Knight
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
 import VidasBar from "./components/VidasBar";
 import { enemyStackClass, isGoblinInimigo, usesLongChargeMove } from "./enemyKind";
+import { layoutBoxRelativeTo, measureMeleeStandRight, readUiZoom } from "./layoutZoom";
 import type { KingAttackVariant } from "./sprites/KingSprite";
 
 export type CorridorMode = "walking" | "dialogue" | "battle" | "enemy_fall" | "ended";
@@ -99,49 +100,60 @@ export default function CorridorScene({
   const [mageSpellPoints, setMageSpellPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(
     null,
   );
+  const [meleeStandRight, setMeleeStandRight] = useState<string | undefined>();
 
-  const measureBlastPoints = useCallback(() => {
+  const measureActorBoxes = useCallback(() => {
     const actors = actorsRef.current;
     const knight = knightVisualRef.current;
     const enemy = enemySlotRef.current;
     if (!actors || !knight || !enemy) return null;
 
+    const zoom = readUiZoom();
     const actorsRect = actors.getBoundingClientRect();
-    const knightRect = knight.getBoundingClientRect();
-    const enemyRect = enemy.getBoundingClientRect();
-
     return {
-      from: {
-        x: knightRect.right - actorsRect.left - 6,
-        y: knightRect.top - actorsRect.top + knightRect.height * 0.42,
-      },
-      to: {
-        x: enemyRect.left - actorsRect.left + 18,
-        y: enemyRect.top - actorsRect.top + enemyRect.height * 0.5,
-      },
+      knight: layoutBoxRelativeTo(actorsRect, knight.getBoundingClientRect(), zoom),
+      enemy: layoutBoxRelativeTo(actorsRect, enemy.getBoundingClientRect(), zoom),
     };
   }, []);
 
-  const measureArrowPoints = useCallback(() => {
-    const actors = actorsRef.current;
-    const knight = knightVisualRef.current;
-    const enemy = enemySlotRef.current;
-    if (!actors || !knight || !enemy) return null;
-
-    const actorsRect = actors.getBoundingClientRect();
-    const knightRect = knight.getBoundingClientRect();
-    const enemyRect = enemy.getBoundingClientRect();
+  const measureBlastPoints = useCallback(() => {
+    const boxes = measureActorBoxes();
+    if (!boxes) return null;
 
     return {
       from: {
-        x: enemyRect.left - actorsRect.left + enemyRect.width * 0.22,
-        y: enemyRect.top - actorsRect.top + enemyRect.height * 0.42,
+        x: boxes.knight.right - 6,
+        y: boxes.knight.top + boxes.knight.height * 0.42,
       },
       to: {
-        x: knightRect.left - actorsRect.left + knightRect.width * 0.55,
-        y: knightRect.top - actorsRect.top + knightRect.height * 0.42,
+        x: boxes.enemy.left + 18,
+        y: boxes.enemy.top + boxes.enemy.height * 0.5,
       },
     };
+  }, [measureActorBoxes]);
+
+  const measureArrowPoints = useCallback(() => {
+    const boxes = measureActorBoxes();
+    if (!boxes) return null;
+
+    return {
+      from: {
+        x: boxes.enemy.left + boxes.enemy.width * 0.22,
+        y: boxes.enemy.top + boxes.enemy.height * 0.42,
+      },
+      to: {
+        x: boxes.knight.left + boxes.knight.width * 0.55,
+        y: boxes.knight.top + boxes.knight.height * 0.42,
+      },
+    };
+  }, [measureActorBoxes]);
+
+  const updateMeleeStand = useCallback(() => {
+    const actors = actorsRef.current;
+    const knight = knightVisualRef.current;
+    const enemy = enemySlotRef.current;
+    if (!actors || !knight || !enemy) return;
+    setMeleeStandRight(measureMeleeStandRight(actors, knight, enemy));
   }, []);
 
   useLayoutEffect(() => {
@@ -168,6 +180,26 @@ export default function CorridorScene({
     setMageSpellPoints(measureArrowPoints());
   }, [mageMagic, measureArrowPoints]);
 
+  useLayoutEffect(() => {
+    if (!enemyVisible || !inimigo) {
+      setMeleeStandRight(undefined);
+      return;
+    }
+
+    updateMeleeStand();
+
+    const actors = actorsRef.current;
+    const observer =
+      actors && typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateMeleeStand) : null;
+    observer?.observe(actors);
+    window.addEventListener("resize", updateMeleeStand);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateMeleeStand);
+    };
+  }, [compact, enemyVisible, inimigo, updateMeleeStand]);
+
   const staticArena = arenaKind === "first" || arenaKind === "throne";
   const backgroundSrc =
     arenaKind === "throne"
@@ -181,6 +213,7 @@ export default function CorridorScene({
     "--rk-scroll-ms": `${walkDurationMs}ms`,
     "--rk-goblin-charge-ms": `${enemyChargeMs}ms`,
     "--rk-goblin-retreat-ms": `${enemyRetreatMs}ms`,
+    ...(meleeStandRight ? { "--rk-enemy-at-knight-right": meleeStandRight } : {}),
   } as React.CSSProperties;
 
   const sceneClass = [

@@ -527,6 +527,9 @@
 
 /* ===== Corridor scene ===== */
 .rk-scene {
+  --rk-knight-slot-left: 14%;
+  --rk-melee-stand-from-knight: 288px;
+  --rk-enemy-at-knight-right: calc(100% - var(--rk-knight-slot-left) - var(--rk-melee-stand-from-knight));
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -774,7 +777,7 @@
 
 .rk-scene__knight-slot {
   position: absolute;
-  left: 14%;
+  left: var(--rk-knight-slot-left);
   bottom: 26%;
   overflow: visible;
   z-index: 2;
@@ -1271,7 +1274,7 @@
 
 .rk-scene__enemy-slot--walking {
   right: -38%;
-  animation: rk-enemy-approach var(--rk-walk-ms, 5s) ease-out forwards;
+  animation: rk-enemy-approach var(--rk-walk-ms, 5s) linear forwards;
 }
 
 .rk-scene__enemy-slot--walking.rk-scene__enemy-slot--scroll-wait {
@@ -1301,17 +1304,17 @@
 .rk-scene__enemy-slot--at-knight,
 .rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight,
 .rk-scene__enemy-slot--battle.rk-scene__enemy-slot--at-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: none;
 }
 
 .rk-scene__enemy-slot--retreat {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat var(--rk-goblin-retreat-ms, 720ms) ease-in forwards;
 }
 
 .rk-scene__enemy-slot--retreat-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat-knight var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
@@ -1391,8 +1394,13 @@
   background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 5, 0.42) 100%);
 }
 
+.rk-scene--compact {
+  --rk-knight-slot-left: 8%;
+  --rk-melee-stand-from-knight: 236px;
+}
+
 .rk-scene--compact .rk-scene__knight-slot {
-  left: 8%;
+  left: var(--rk-knight-slot-left);
 }
 
 .rk-scene--compact .rk-scene__enemy-slot {
@@ -1406,12 +1414,12 @@
 }
 
 .rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: none;
 }
 
 .rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--retreat-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat-knight-compact var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
@@ -1689,31 +1697,31 @@
 
 @keyframes rk-goblin-charge {
   from { right: 18%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-charge-knight {
   from { right: 18%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-charge-knight-compact {
   from { right: 8%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-retreat {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 18%; }
 }
 
 @keyframes rk-goblin-retreat-knight {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 18%; }
 }
 
 @keyframes rk-goblin-retreat-knight-compact {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 8%; }
 }
 

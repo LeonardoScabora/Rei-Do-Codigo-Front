@@ -151,6 +151,7 @@ export default function NewGameScreen({
             <MenuBanner
               key={lang.key}
               icon={<LangIcon lang={lang.key} color={lang.color} />}
+              chevron="none"
               selected={isSelected}
               hot={isActive}
               disabled={submitting}
@@ -181,6 +182,7 @@ export default function NewGameScreen({
                   <MenuBanner
                     key={diff.key}
                     hint={diff.hint}
+                    chevron="none"
                     selected={isSelected}
                     hot={isActive}
                     disabled={submitting}
@@ -229,7 +231,7 @@ export default function NewGameScreen({
           Voltar
         </MenuBanner>
         {canConfirm && (
-          <MenuBanner disabled={submitting} onClick={confirmSelection}>
+          <MenuBanner align="center" disabled={submitting} onClick={confirmSelection}>
             {submitting ? "Criando..." : "Confirmar"}
           </MenuBanner>
         )}
