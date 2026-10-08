@@ -66,6 +66,7 @@ export function MenuBanner({
   chevron = "right",
   align = "start",
   tone = "default",
+  flat = false,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -78,7 +79,8 @@ export function MenuBanner({
   disabled?: boolean;
   chevron?: "left" | "right" | "none";
   align?: "start" | "center";
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "continue";
+  flat?: boolean;
   onClick?: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -88,6 +90,8 @@ export function MenuBanner({
     selected ? "rk-menu-entry--on" : "",
     hot ? "rk-menu-entry--hot" : "",
     tone === "danger" ? "rk-menu-entry--danger" : "",
+    tone === "continue" ? "rk-menu-entry--continue" : "",
+    flat ? "rk-menu-entry--flat" : "",
   ]
     .filter(Boolean)
     .join(" ");

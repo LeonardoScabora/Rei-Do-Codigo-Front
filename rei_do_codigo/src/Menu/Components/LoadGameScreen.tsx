@@ -87,6 +87,7 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
                 <MenuBanner
                   selected={ativo}
                   chevron="none"
+                  flat
                   hint={textoProgresso(usuario)}
                   onClick={() => setSelecionadoId((id) => (id === usuario.id ? null : usuario.id))}
                 >
@@ -104,7 +105,7 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
                     >
                       {excluindo ? "Excluindo..." : "Excluir"}
                     </MenuBanner>
-                    <MenuBanner align="center" disabled={excluindo} onClick={() => onLoad(usuario)}>
+                    <MenuBanner tone="continue" align="center" disabled={excluindo} onClick={() => onLoad(usuario)}>
                       Continuar
                     </MenuBanner>
                   </div>

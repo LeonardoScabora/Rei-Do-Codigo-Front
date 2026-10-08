@@ -111,8 +111,8 @@ body {
 }
 
 .rk-crown {
-  color: #6CFF9A;
-  filter: drop-shadow(0 0 8px rgba(108, 255, 154, 0.8));
+  color: #ffd76a;
+  filter: drop-shadow(0 0 8px rgba(232, 178, 58, 0.85));
   animation: rk-pulse 3s ease-in-out infinite;
 }
 
@@ -151,9 +151,9 @@ body {
   width: 7px;
   height: 7px;
   margin-top: -3.5px;
-  background: #b8ffd4;
+  background: #ffd76a;
   transform: rotate(45deg);
-  box-shadow: 0 0 8px rgba(140, 255, 180, 0.95);
+  box-shadow: 0 0 8px rgba(232, 178, 58, 0.95);
 }
 
 .rk-crest__arm--mirror .rk-crest__gem {
@@ -184,9 +184,9 @@ body {
 .rk-title-gem {
   width: 10px;
   height: 10px;
-  background: #8dffb8;
+  background: #ffd76a;
   transform: rotate(45deg);
-  box-shadow: 0 0 10px rgba(120, 255, 170, 0.95);
+  box-shadow: 0 0 10px rgba(232, 178, 58, 0.95);
 }
 
 .rk-divider {
@@ -211,9 +211,9 @@ body {
 .rk-diamond {
   width: 8px;
   height: 8px;
-  background: #6CFF9A;
+  background: #ffd76a;
   transform: rotate(45deg);
-  box-shadow: 0 0 6px rgba(108, 255, 154, 0.9);
+  box-shadow: 0 0 6px rgba(232, 178, 58, 0.9);
 }
 
 .rk-panel {
@@ -347,9 +347,9 @@ body {
   bottom: -6px;
   width: 11px;
   height: 11px;
-  background: #8dffb8;
+  background: #ffd76a;
   transform: translateX(-50%) rotate(45deg);
-  box-shadow: 0 0 10px rgba(120, 255, 170, 0.95);
+  box-shadow: 0 0 10px rgba(232, 178, 58, 0.95);
   z-index: 3;
 }
 
@@ -489,14 +489,88 @@ body {
   cursor: not-allowed;
 }
 
-.rk-menu-entry--danger:hover,
-.rk-menu-entry--danger:focus-visible {
-  background: #ffb4b4;
-  filter: drop-shadow(0 0 12px rgba(255, 110, 110, 0.7));
+.rk-menu-entry--danger {
+  background: #5dff96;
+  filter: drop-shadow(0 0 7px rgba(80, 255, 150, 0.45));
 }
 
+.rk-menu-entry--danger .rk-menu-entry__face,
 .rk-menu-entry--danger:hover .rk-menu-entry__face,
 .rk-menu-entry--danger:focus-visible .rk-menu-entry__face {
+  background: rgb(157, 17, 7);
+  box-shadow: none;
+}
+
+.rk-menu-entry--danger:hover,
+.rk-menu-entry--danger:focus-visible {
+  background: #c8ffdf;
+  filter: drop-shadow(0 0 12px rgba(140, 255, 180, 0.85));
+}
+
+.rk-menu-entry--continue .rk-menu-entry__face,
+.rk-menu-entry--continue:hover .rk-menu-entry__face,
+.rk-menu-entry--continue:focus-visible .rk-menu-entry__face {
+  background: rgb(40, 89, 67);
+  box-shadow: none;
+}
+
+.rk-menu-entry--flat {
+  padding: 0;
+  background: linear-gradient(180deg, #0d2818 0%, #06140d 100%);
+  filter: drop-shadow(0 0 6px rgba(80, 255, 150, 0.28));
+}
+
+.rk-menu-entry--flat .rk-menu-entry__face {
+  background: transparent;
+  box-shadow: none;
+}
+
+.rk-menu-entry--flat.rk-menu-entry--on {
+  padding: 2px;
+  background: #5dff96;
+  filter: drop-shadow(0 0 7px rgba(80, 255, 150, 0.45));
+}
+
+.rk-menu-entry--flat.rk-menu-entry--on .rk-menu-entry__face {
+  background: linear-gradient(180deg, #0d2818 0%, #06140d 100%);
+  box-shadow: none;
+}
+
+.rk-menu-entry--flat:hover,
+.rk-menu-entry--flat:focus-visible,
+.rk-menu-entry--flat.rk-menu-entry--hot {
+  padding: 2px;
+  background: #c8ffdf;
+  filter: drop-shadow(0 0 12px rgba(140, 255, 180, 0.85));
+}
+
+.rk-menu-entry--flat:hover .rk-menu-entry__face,
+.rk-menu-entry--flat:focus-visible .rk-menu-entry__face,
+.rk-menu-entry--flat.rk-menu-entry--hot .rk-menu-entry__face {
+  background: linear-gradient(180deg, #143622 0%, #0a1e12 100%);
+  box-shadow: inset 0 0 18px rgba(80, 255, 150, 0.22);
+}
+
+.rk-menu-entry--flat.rk-menu-entry--danger {
+  padding: 0;
+  background: linear-gradient(180deg, #3a1414 0%, #140808 100%);
+  filter: drop-shadow(0 0 8px rgba(255, 80, 80, 0.35));
+}
+
+.rk-menu-entry--flat.rk-menu-entry--danger .rk-menu-entry__face {
+  background: transparent;
+  box-shadow: none;
+}
+
+.rk-menu-entry--flat.rk-menu-entry--danger:hover,
+.rk-menu-entry--flat.rk-menu-entry--danger:focus-visible {
+  padding: 2px;
+  background: #c8ffdf;
+  filter: drop-shadow(0 0 12px rgba(140, 255, 180, 0.85));
+}
+
+.rk-menu-entry--flat.rk-menu-entry--danger:hover .rk-menu-entry__face,
+.rk-menu-entry--flat.rk-menu-entry--danger:focus-visible .rk-menu-entry__face {
   background: linear-gradient(180deg, #3a1414 0%, #140808 100%);
   box-shadow: inset 0 0 18px rgba(255, 90, 90, 0.2);
 }
@@ -545,6 +619,10 @@ body {
 }
 
 .rk-panel--menu .rk-name-field label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-family: "Pixelify Sans", sans-serif;
   font-size: 18px;
   color: #d9ffe8;
@@ -607,10 +685,10 @@ body {
 .rk-diamond-sm {
   width: 6px;
   height: 6px;
-  background: #6CFF9A;
+  background: #ffd76a;
   transform: rotate(45deg);
   display: inline-block;
-  box-shadow: 0 0 6px rgba(108, 255, 154, 0.9);
+  box-shadow: 0 0 6px rgba(232, 178, 58, 0.9);
 }
 
 .rk-lang-item {
