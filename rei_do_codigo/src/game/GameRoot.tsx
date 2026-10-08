@@ -229,6 +229,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
       if (crownSwapRef.current) {
         pendingCrownWalk.current = "walking";
         setEntradaLiberada(false);
+        setKnightPose("idle");
         return;
       }
 
@@ -250,6 +251,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
     }
     if (pendingCrownWalk.current === "walking") {
       pendingCrownWalk.current = null;
+      setKnightPose("walk");
       walkTimer.current = window.setTimeout(() => {
         setKnightPose("idle");
         setEnemyPose("idle");
@@ -714,7 +716,8 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const knightWaitingEnter =
     !entradaLiberada &&
     ((fase === "walking" && arenaEstatica) || enteringCorridor);
-  const scrollActive = scrolling && !enteringCorridor;
+  const corridorWalkHeld = scrolling && !entradaLiberada;
+  const scrollActive = scrolling && !enteringCorridor && entradaLiberada;
   const knightExiting = fase === "knight_exit_arena";
   const enemyVisible =
     Boolean(inimigoAtual) &&
@@ -806,7 +809,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
             knightEntering={knightEntering}
             knightWaitingEnter={knightWaitingEnter}
             knightExiting={knightExiting}
-            enemyScrollWaiting={enteringCorridor}
+            enemyScrollWaiting={enteringCorridor || corridorWalkHeld}
             scrollActive={scrollActive}
             walkDurationMs={knightExiting ? EXIT_MS : enteringCorridor ? ENTER_MS : WALK_MS}
             onKnightEnterComplete={enteringCorridor ? concluirEntradaCorredor : undefined}
@@ -843,7 +846,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
         </div>
 
         {painelDireito && batalha && inimigoAtual && (
-          <aside className="rk-game-side">
+          <aside className={`rk-game-side${usarPainelCodigo(batalha) ? " rk-game-side--code" : ""}`}>
             {usarPainelCodigo(batalha) ? (
               <CodeBattle
                 batalha={batalha}

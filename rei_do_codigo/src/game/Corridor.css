@@ -324,8 +324,83 @@
   letter-spacing: 0.5px;
 }
 
+.rk-game-side:has(.rk-side-panel--code) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.rk-game-side > .rk-terminal-out {
+  flex: 0 0 auto;
+  max-height: none;
+  margin-top: 10px;
+  overflow: visible;
+}
+
+.rk-game-side > .rk-terminal-out pre {
+  margin: 8px 0 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.rk-game-side--code {
+  width: min(680px, 54vw);
+  min-width: 440px;
+  max-width: 720px;
+}
+
+.rk-side-panel--code .rk-desafio-info {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding: 10px 12px;
+  max-height: none;
+  overflow: visible;
+}
+
+.rk-side-panel--code .rk-quiz-enunciado {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.rk-side-panel--code .rk-io-examples {
+  margin-top: 6px;
+  gap: 8px;
+}
+
+.rk-side-panel--code .rk-io-examples strong {
+  font-size: 9px;
+}
+
+.rk-side-panel--code .rk-io-examples pre {
+  margin-top: 3px;
+  padding: 6px 8px;
+  font-size: 14px;
+  max-height: 3.2em;
+  overflow: auto;
+}
+
 .rk-side-panel--code .rk-editor-wrap {
-  height: 220px;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 340px;
+  margin-top: 0;
+  border-top: none;
+}
+
+.rk-side-panel--code .rk-panel.rk-live-terminal {
+  margin-top: 0;
+  border-top: none;
+}
+
+.rk-side-panel--code .rk-code-actions {
+  margin-top: 6px;
+}
+
+.rk-side-panel--code .rk-code-actions .rk-back-btn {
+  margin-top: 0;
 }
 
 /* ===== Footer ===== */
@@ -527,6 +602,9 @@
 
 /* ===== Corridor scene ===== */
 .rk-scene {
+  --rk-knight-slot-left: 14%;
+  --rk-melee-stand-from-knight: 288px;
+  --rk-enemy-at-knight-right: calc(100% - var(--rk-knight-slot-left) - var(--rk-melee-stand-from-knight));
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -774,7 +852,7 @@
 
 .rk-scene__knight-slot {
   position: absolute;
-  left: 14%;
+  left: var(--rk-knight-slot-left);
   bottom: 26%;
   overflow: visible;
   z-index: 2;
@@ -982,7 +1060,7 @@
 .rk-enemy-stack--skeleton .rk-scene__hp--enemy {
   position: absolute;
   left: 50%;
-  bottom: 128px;
+  bottom: 144px;
   transform: translateX(-50%);
   margin: 0;
   z-index: 3;
@@ -1271,7 +1349,7 @@
 
 .rk-scene__enemy-slot--walking {
   right: -38%;
-  animation: rk-enemy-approach var(--rk-walk-ms, 5s) ease-out forwards;
+  animation: rk-enemy-approach var(--rk-walk-ms, 5s) linear forwards;
 }
 
 .rk-scene__enemy-slot--walking.rk-scene__enemy-slot--scroll-wait {
@@ -1301,17 +1379,17 @@
 .rk-scene__enemy-slot--at-knight,
 .rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight,
 .rk-scene__enemy-slot--battle.rk-scene__enemy-slot--at-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: none;
 }
 
 .rk-scene__enemy-slot--retreat {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat var(--rk-goblin-retreat-ms, 720ms) ease-in forwards;
 }
 
 .rk-scene__enemy-slot--retreat-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat-knight var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
@@ -1391,8 +1469,13 @@
   background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 5, 0.42) 100%);
 }
 
+.rk-scene--compact {
+  --rk-knight-slot-left: 8%;
+  --rk-melee-stand-from-knight: 236px;
+}
+
 .rk-scene--compact .rk-scene__knight-slot {
-  left: 8%;
+  left: var(--rk-knight-slot-left);
 }
 
 .rk-scene--compact .rk-scene__enemy-slot {
@@ -1406,12 +1489,12 @@
 }
 
 .rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--at-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: none;
 }
 
 .rk-scene--compact .rk-scene__enemy-slot.rk-scene__enemy-slot--retreat-knight {
-  right: var(--rk-enemy-at-knight-right, 52%);
+  right: var(--rk-enemy-at-knight-right);
   animation: rk-goblin-retreat-knight-compact var(--rk-goblin-retreat-ms, 1400ms) ease-in forwards;
 }
 
@@ -1689,31 +1772,31 @@
 
 @keyframes rk-goblin-charge {
   from { right: 18%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-charge-knight {
   from { right: 18%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-charge-knight-compact {
   from { right: 8%; }
-  to { right: var(--rk-enemy-at-knight-right, 52%); }
+  to { right: var(--rk-enemy-at-knight-right); }
 }
 
 @keyframes rk-goblin-retreat {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 18%; }
 }
 
 @keyframes rk-goblin-retreat-knight {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 18%; }
 }
 
 @keyframes rk-goblin-retreat-knight-compact {
-  from { right: var(--rk-enemy-at-knight-right, 52%); }
+  from { right: var(--rk-enemy-at-knight-right); }
   to { right: 8%; }
 }
 
@@ -1774,7 +1857,8 @@
     flex-direction: column;
   }
 
-  .rk-game-side {
+  .rk-game-side,
+  .rk-game-side--code {
     width: auto;
     max-width: none;
     min-width: 0;

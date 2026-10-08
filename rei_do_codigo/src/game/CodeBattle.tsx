@@ -12,7 +12,6 @@ import {
   type ResultadoAcao,
   type TerminalSessao,
 } from "../api";
-import { labelLinguagem } from "../Menu/language";
 
 type Props = {
   batalha: Batalha;
@@ -66,7 +65,6 @@ export default function CodeBattle({
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [stdoutTestes, setStdoutTestes] = useState("");
   const [stderrTestes, setStderrTestes] = useState("");
   const [resultadoPendente, setResultadoPendente] = useState<ResultadoAcao | null>(null);
@@ -92,7 +90,6 @@ export default function CodeBattle({
     (async () => {
       setCarregando(true);
       setErro(null);
-      setFeedback(null);
       setStdoutTestes("");
       setStderrTestes("");
       setResultadoPendente(null);
@@ -188,7 +185,6 @@ export default function CodeBattle({
 
     setBusyTerminal(true);
     setErro(null);
-    setFeedback(null);
     setTerm({ log: "", tail: "", err: "" });
     setSessionId(null);
     setAguardandoEntrada(false);
@@ -253,12 +249,10 @@ export default function CodeBattle({
     }
     setEnviando(true);
     setErro(null);
-    setFeedback(null);
     setStdoutTestes("");
     setStderrTestes("");
     try {
       const resultado = await submeterCodigo(batalha.id, codigo);
-      setFeedback(resultado.mensagem);
       setStdoutTestes(resultado.stdout ?? "");
       setStderrTestes(resultado.stderr ?? "");
 
@@ -308,13 +302,10 @@ export default function CodeBattle({
     batalha.status !== "EM_ANDAMENTO";
 
   return (
+    <>
     <div className="rk-side-panel rk-side-panel--code">
-      <p className="rk-side-panel__title">Terminal · {labelLinguagem(linguagem)}</p>
       {carregando && <p className="rk-hint">Carregando desafio...</p>}
       {erro && <p className="rk-error">{erro}</p>}
-      {feedback && (
-        <p className={`rk-feedback${resultadoPendente ? " rk-ok" : ""}`}>{feedback}</p>
-      )}
 
       {desafio && (
         <>
@@ -341,7 +332,7 @@ export default function CodeBattle({
               value={codigo}
               onChange={(value) => setCodigo(value ?? "")}
               options={{
-                fontSize: 13,
+                fontSize: 15,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
@@ -353,38 +344,35 @@ export default function CodeBattle({
           </div>
 
           {!resultadoPendente && (
-            <div className="rk-panel rk-live-terminal" aria-label="Terminal interativo">
-              <strong>Console</strong>
-              <div className="rk-live-terminal__body">
-                {sysHint && <div className="rk-term-sys">{sysHint}</div>}
-                <pre className="rk-live-terminal__log">{term.log}</pre>
-                {term.err && <pre className="rk-live-terminal__err">{term.err}</pre>}
-                <div className="rk-term-input-row">
-                  <span className="rk-term-tail">{term.tail}</span>
-                  {aguardandoEntrada && (
-                    <form
-                      className="rk-term-input-form"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void enviarLinha();
-                      }}
-                    >
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        className="rk-term-input"
-                        value={inputAtual}
-                        disabled={busyTerminal || disabled}
-                        onChange={(e) => setInputAtual(e.target.value)}
-                        autoComplete="off"
-                        spellCheck={false}
-                        aria-label="Entrada do terminal"
-                      />
-                    </form>
-                  )}
-                </div>
-                <div ref={termEndRef} />
+            <div className="rk-panel rk-live-terminal" aria-label="Console">
+              {sysHint && <div className="rk-term-sys">{sysHint}</div>}
+              <pre className="rk-live-terminal__log">{term.log}</pre>
+              {term.err && <pre className="rk-live-terminal__err">{term.err}</pre>}
+              <div className="rk-term-input-row">
+                <span className="rk-term-tail">{term.tail}</span>
+                {aguardandoEntrada && (
+                  <form
+                    className="rk-term-input-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void enviarLinha();
+                    }}
+                  >
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="rk-term-input"
+                      value={inputAtual}
+                      disabled={busyTerminal || disabled}
+                      onChange={(e) => setInputAtual(e.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                      aria-label="Entrada do terminal"
+                    />
+                  </form>
+                )}
               </div>
+              <div ref={termEndRef} />
             </div>
           )}
 
@@ -435,25 +423,26 @@ export default function CodeBattle({
               </>
             )}
           </div>
-
-          {(stdoutTestes || stderrTestes) && (
-            <div className="rk-panel rk-terminal-out">
-              {stdoutTestes && (
-                <>
-                  <strong>Testes oficiais</strong>
-                  <pre>{stdoutTestes}</pre>
-                </>
-              )}
-              {stderrTestes && (
-                <>
-                  <strong>Stderr</strong>
-                  <pre className="rk-stderr">{stderrTestes}</pre>
-                </>
-              )}
-            </div>
-          )}
         </>
       )}
     </div>
+
+    {(stdoutTestes || stderrTestes) && (
+      <div className="rk-panel rk-terminal-out" aria-label="Testes oficiais">
+        {stdoutTestes && (
+          <>
+            <strong>Testes oficiais</strong>
+            <pre>{stdoutTestes}</pre>
+          </>
+        )}
+        {stderrTestes && (
+          <>
+            <strong>Stderr</strong>
+            <pre className="rk-stderr">{stderrTestes}</pre>
+          </>
+        )}
+      </div>
+    )}
+    </>
   );
 }

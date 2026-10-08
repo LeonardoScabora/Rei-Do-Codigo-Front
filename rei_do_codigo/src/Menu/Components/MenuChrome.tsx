@@ -64,7 +64,9 @@ export function MenuBanner({
   hot = false,
   disabled = false,
   chevron = "right",
+  align = "start",
   tone = "default",
+  flat = false,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -75,8 +77,10 @@ export function MenuBanner({
   selected?: boolean;
   hot?: boolean;
   disabled?: boolean;
-  chevron?: "left" | "right";
-  tone?: "default" | "danger";
+  chevron?: "left" | "right" | "none";
+  align?: "start" | "center";
+  tone?: "default" | "danger" | "continue";
+  flat?: boolean;
   onClick?: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -86,6 +90,19 @@ export function MenuBanner({
     selected ? "rk-menu-entry--on" : "",
     hot ? "rk-menu-entry--hot" : "",
     tone === "danger" ? "rk-menu-entry--danger" : "",
+    tone === "continue" ? "rk-menu-entry--continue" : "",
+    flat ? "rk-menu-entry--flat" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const showChevron = chevron !== "none";
+  const chevronFirst = chevron === "left";
+  const centered = align === "center";
+  const faceClass = [
+    "rk-menu-entry__face",
+    icon ? "" : "rk-menu-entry__face--plain",
+    chevronFirst ? "rk-menu-entry__face--lead" : "",
+    centered ? "rk-menu-entry__face--center" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -99,7 +116,8 @@ export function MenuBanner({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span className={`rk-menu-entry__face${icon ? "" : " rk-menu-entry__face--plain"}`}>
+      <span className={faceClass}>
+        {showChevron && chevronFirst && <Chevron direction="left" />}
         {icon && (
           <>
             <span className="rk-menu-entry__icon">{icon}</span>
@@ -110,7 +128,7 @@ export function MenuBanner({
           {children}
           {hint ? <small>{hint}</small> : null}
         </span>
-        <Chevron direction={chevron} />
+        {showChevron && !chevronFirst && <Chevron direction="right" />}
       </span>
     </button>
   );

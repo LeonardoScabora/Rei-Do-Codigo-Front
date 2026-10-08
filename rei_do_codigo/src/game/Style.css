@@ -407,6 +407,12 @@
 
 .rk-side-panel--code {
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  height: 100%;
+  min-height: 100%;
+  overflow: visible;
 }
 
 .rk-side-panel--code .rk-side-panel__title,
@@ -417,34 +423,20 @@
   text-align: left;
 }
 
-.rk-live-terminal {
+.rk-panel.rk-live-terminal {
   width: 100%;
-  margin-top: 12px;
+  flex: 0 0 auto;
+  margin-top: 8px;
+  padding: 8px 10px;
+  min-height: 150px;
+  max-height: 190px;
+  overflow: auto;
   text-align: left;
-}
-
-.rk-live-terminal > strong {
-  display: block;
-  font-family: "Press Start 2P", monospace;
-  font-size: 8px;
-  color: #4fce7c;
-  text-align: left;
-}
-
-.rk-live-terminal__body {
-  margin-top: 6px;
-  min-height: 140px;
-  max-height: 220px;
-  overflow-y: auto;
-  overflow-x: auto;
-  padding: 10px 12px;
   background: #020805;
-  border: 1px solid #2e9c57;
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.45;
   color: #d2ffe0;
-  text-align: left;
 }
 
 .rk-term-sys {
@@ -504,7 +496,7 @@
   color: #f0fff4;
   caret-color: #6cff9a;
   font-family: Consolas, "Courier New", monospace;
-  font-size: 13px;
+  font-size: 15px;
   padding: 0;
   text-align: left;
 }
@@ -537,6 +529,7 @@
 .rk-code-actions {
   justify-content: flex-end;
   gap: 10px;
+  flex: 0 0 auto;
 }
 
 .rk-confirm-btn:disabled {

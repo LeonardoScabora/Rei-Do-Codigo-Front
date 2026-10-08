@@ -63,11 +63,12 @@ export default function CodeEnergyBlast({ from, to, durationMs, onHit }: Props) 
     const angle = Math.atan2(dy, dx);
 
     const resize = () => {
-      const rect = parent.getBoundingClientRect();
-      canvas.width = Math.max(1, Math.floor(rect.width * devicePixelRatio));
-      canvas.height = Math.max(1, Math.floor(rect.height * devicePixelRatio));
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
+      canvas.width = Math.max(1, Math.floor(width * devicePixelRatio));
+      canvas.height = Math.max(1, Math.floor(height * devicePixelRatio));
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     };
 
@@ -108,10 +109,9 @@ export default function CodeEnergyBlast({ from, to, durationMs, onHit }: Props) 
 
     const draw = (now: number) => {
       tick += 1;
-      const rect = parent.getBoundingClientRect();
       const progress = Math.min(1, (now - start) / durationMs);
 
-      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.clearRect(0, 0, parent.clientWidth, parent.clientHeight);
       ctx.font = `bold ${fontSize}px monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";

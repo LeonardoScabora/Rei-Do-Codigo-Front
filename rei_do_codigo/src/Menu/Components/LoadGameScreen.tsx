@@ -86,6 +86,8 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
               <div key={usuario.id} className="rk-save-block">
                 <MenuBanner
                   selected={ativo}
+                  chevron="none"
+                  flat
                   hint={textoProgresso(usuario)}
                   onClick={() => setSelecionadoId((id) => (id === usuario.id ? null : usuario.id))}
                 >
@@ -96,13 +98,14 @@ export default function LoadGameScreen({ onBack, onLoad }: Props) {
                   <div className="rk-menu-actions">
                     <MenuBanner
                       tone="danger"
-                      chevron="left"
+                      chevron="none"
+                      align="center"
                       disabled={excluindo}
                       onClick={() => void handleExcluir()}
                     >
                       {excluindo ? "Excluindo..." : "Excluir"}
                     </MenuBanner>
-                    <MenuBanner disabled={excluindo} onClick={() => onLoad(usuario)}>
+                    <MenuBanner tone="continue" align="center" disabled={excluindo} onClick={() => onLoad(usuario)}>
                       Continuar
                     </MenuBanner>
                   </div>
