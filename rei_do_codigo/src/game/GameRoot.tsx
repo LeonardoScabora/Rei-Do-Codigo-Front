@@ -131,7 +131,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const [crownSceneReady, setCrownSceneReady] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [entradaLiberada, setEntradaLiberada] = useState(pronto);
-  const [sequencia, setSequencia] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
   const attackEndTimer = useRef<number | null>(null);
@@ -609,7 +608,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   }, []);
 
   function atualizarBatalha(parcial: Partial<Batalha>, resultado: ResultadoAcao) {
-    setSequencia((s) => (resultado.acertou ? s + 1 : 0));
     setAnimandoHit(true);
 
     if (hitTimer.current) window.clearTimeout(hitTimer.current);
@@ -731,6 +729,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const emBatalha = fase === "battle" && batalha;
   const painelDireito = emBatalha || fase === "enemy_fall";
   const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
+  const sequencia = Math.max(0, usuario.progresso - 1);
   const vidaAtual = batalha?.vidaJogador ?? 3;
   const enemyChargeMs = usesLongChargeMove(inimigoAtual)
     ? ENEMY_KNIGHT_CHARGE_MS
