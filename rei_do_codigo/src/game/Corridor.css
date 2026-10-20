@@ -471,6 +471,62 @@
   filter: drop-shadow(0 0 6px rgba(255, 138, 42, 0.8));
 }
 
+/* ===== Controles exclusivos de desenvolvimento ===== */
+.rk-dev-mode {
+  position: fixed;
+  left: 18px;
+  bottom: 112px;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 190px;
+  padding: 11px;
+  box-sizing: border-box;
+  background: rgba(3, 8, 6, 0.96);
+  border: 1.5px solid var(--rk-amber);
+  box-shadow:
+    0 0 18px rgba(255, 157, 58, 0.24),
+    inset 0 0 16px rgba(255, 157, 58, 0.05);
+}
+
+.rk-dev-mode__title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--rk-amber);
+  text-shadow: 0 0 8px rgba(255, 157, 58, 0.55);
+}
+
+.rk-dev-mode__actions {
+  display: flex;
+  gap: 7px;
+}
+
+.rk-dev-mode__actions button {
+  flex: 1;
+  min-height: 30px;
+  padding: 0 8px;
+  background: rgba(255, 157, 58, 0.08);
+  border: 1px solid rgba(255, 157, 58, 0.55);
+  color: #ffd7a3;
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  cursor: pointer;
+}
+
+.rk-dev-mode__actions button:hover:not(:disabled),
+.rk-dev-mode__actions button:focus-visible:not(:disabled) {
+  background: rgba(255, 157, 58, 0.2);
+  box-shadow: 0 0 9px rgba(255, 157, 58, 0.3);
+  outline: none;
+}
+
+.rk-dev-mode__actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* trilha de progresso */
 .rk-progress-track {
   display: flex;
@@ -1317,26 +1373,6 @@
   filter: drop-shadow(0 0 8px rgba(110, 210, 255, 0.9));
 }
 
-.rk-enemy-arrow {
-  position: absolute;
-  margin-left: -48px;
-  margin-top: -12px;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.rk-enemy-arrow img {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  display: block;
-  max-width: none;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.65));
-}
-
 .rk-scene__enemy-slot {
   position: absolute;
   bottom: 26%;
@@ -1886,6 +1922,10 @@
 
   .rk-game-footer {
     flex-wrap: wrap;
+  }
+
+  .rk-dev-mode {
+    bottom: 205px;
   }
 
   .rk-footer-block--progress {

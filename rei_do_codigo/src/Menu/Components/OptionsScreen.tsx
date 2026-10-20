@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import AudioOptionsPanel from "../../Components/AudioOptionsPanel";
+import AudioOptionsPanel from "../../components/AudioOptionsPanel";
 import { MenuBanner, MenuFrame } from "./MenuChrome";
 
 export default function OptionsScreen({ onBack }: { onBack: () => void }) {

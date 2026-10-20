@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import AudioOptionsPanel from "../Components/AudioOptionsPanel";
-import GearIcon from "../Components/GearIcon";
+import AudioOptionsPanel from "../components/AudioOptionsPanel";
+import GearIcon from "../components/GearIcon";
 
 type Props = {
   open: boolean;

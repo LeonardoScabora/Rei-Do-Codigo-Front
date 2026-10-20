@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pauseMusicForCrown, resumeMusicAfterCrown } from "../audio/music";
-import CrownIcon from "../Components/CrownIcon";
+import CrownIcon from "../components/CrownIcon";
 
 type Props = {
   active: boolean;

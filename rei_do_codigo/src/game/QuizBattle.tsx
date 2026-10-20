@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
 import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
+import {
+  acertarEtapaDev,
   proximaPergunta,
   responderPergunta,
   type Alternativa,
@@ -14,6 +21,11 @@ type Props = {
   totalPerguntas?: number;
   onAtualizarBatalha: (parcial: Partial<Batalha>, resultado: ResultadoAcao) => void;
   disabled?: boolean;
+};
+
+export type QuizBattleDevHandle = {
+  avancar: () => void;
+  voltar: () => void;
 };
 
 const ALTERNATIVAS: Alternativa[] = ["A", "B", "C", "D"];
@@ -45,12 +57,17 @@ function textoAlternativa(pergunta: Pergunta, alt: Alternativa): string {
   }
 }
 
-export default function QuizBattle({
-  batalha,
-  onAtualizarBatalha,
-  disabled = false,
-}: Props) {
+const QuizBattle = forwardRef<QuizBattleDevHandle, Props>(function QuizBattle(
+  {
+    batalha,
+    onAtualizarBatalha,
+    disabled = false,
+  },
+  devRef,
+) {
   const [pergunta, setPergunta] = useState<Pergunta | null>(null);
+  const [historico, setHistorico] = useState<Pergunta[]>([]);
+  const [indiceHistorico, setIndiceHistorico] = useState(-1);
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -73,6 +90,8 @@ export default function QuizBattle({
     try {
       const p = await proximaPergunta(batalha.id);
       setPergunta(p);
+      setHistorico((atual) => [...atual, p]);
+      setIndiceHistorico((atual) => atual + 1);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao carregar pergunta.");
     } finally {
@@ -81,6 +100,8 @@ export default function QuizBattle({
   }, [batalha.id, batalha.status]);
 
   useEffect(() => {
+    // A própria busca controla loading/feedback antes e depois da chamada assíncrona.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void carregarPergunta();
   }, [carregarPergunta, rodada]);
 
@@ -126,8 +147,94 @@ export default function QuizBattle({
     setRodada((r) => r + 1);
   }
 
+  const voltarDev = useCallback(() => {
+    if (indiceHistorico <= 0) return;
+    const novoIndice = indiceHistorico - 1;
+    setIndiceHistorico(novoIndice);
+    setPergunta(historico[novoIndice]);
+    setFeedback(null);
+    setEscolhida(null);
+    setCorreta(null);
+    setAguardandoAvancar(false);
+  }, [historico, indiceHistorico]);
+
+  const avancarDev = useCallback(async () => {
+    if (indiceHistorico < historico.length - 1) {
+      const novoIndice = indiceHistorico + 1;
+      setIndiceHistorico(novoIndice);
+      setPergunta(historico[novoIndice]);
+      setFeedback(null);
+      setEscolhida(null);
+      setCorreta(null);
+      setAguardandoAvancar(false);
+      return;
+    }
+
+    if (
+      !pergunta ||
+      carregando ||
+      enviando ||
+      disabled ||
+      batalha.status !== "EM_ANDAMENTO"
+    ) {
+      return;
+    }
+
+    setEnviando(true);
+    setErro(null);
+    try {
+      const resultado = await acertarEtapaDev(batalha.id);
+      setFeedback(resultado.mensagem);
+      setAcertouUltima(true);
+      setEscolhida(null);
+      setCorreta(resultado.alternativaCorreta ?? null);
+      setAguardandoAvancar(false);
+      onAtualizarBatalha(
+        {
+          vidaJogador: resultado.vidaJogador,
+          vidaInimigo: resultado.vidaInimigo,
+          status: resultado.status,
+        },
+        resultado,
+      );
+
+      if (resultado.status === "EM_ANDAMENTO") {
+        setRodada((r) => r + 1);
+      }
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao avançar no DEV mode.");
+    } finally {
+      setEnviando(false);
+    }
+  }, [
+    batalha.id,
+    batalha.status,
+    carregando,
+    disabled,
+    enviando,
+    historico,
+    indiceHistorico,
+    onAtualizarBatalha,
+    pergunta,
+  ]);
+
+  useImperativeHandle(
+    devRef,
+    () => ({
+      avancar: () => void avancarDev(),
+      voltar: voltarDev,
+    }),
+    [avancarDev, voltarDev],
+  );
+
+  const visualizandoHistorico = indiceHistorico < historico.length - 1;
   const podeResponder =
-    batalha.status === "EM_ANDAMENTO" && !carregando && !enviando && !disabled && !aguardandoAvancar;
+    batalha.status === "EM_ANDAMENTO" &&
+    !carregando &&
+    !enviando &&
+    !disabled &&
+    !aguardandoAvancar &&
+    !visualizandoHistorico;
 
   return (
     <div className="rk-side-panel">
@@ -190,4 +297,6 @@ export default function QuizBattle({
       )}
     </div>
   );
-}
+});
+
+export default QuizBattle;

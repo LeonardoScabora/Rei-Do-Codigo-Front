@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  acertarEtapaDev,
   buscarUsuario,
   iniciarBatalha,
   listarInimigos,
@@ -9,14 +10,14 @@ import {
   type Usuario,
 } from "../api";
 import { labelLinguagem } from "../Menu/language";
-import CrownIcon from "../Components/CrownIcon";
+import CrownIcon from "../components/CrownIcon";
 import CodeBattle from "./CodeBattle";
 import CorridorScene, { type ArenaKind, type CorridorMode, type EnemyMovePhase } from "./CorridorScene";
 import CrownTransition from "./CrownTransition";
-import DialogueBox from "./DialogueBox";
-import { falasDoEncontro } from "./dialogues";
+import DialogueBox from "./dialogos/DialogueBox";
+import { falasDoEncontro } from "./dialogos/dialogues";
 import GameOptionsModal from "./GameOptionsModal";
-import QuizBattle from "./QuizBattle";
+import QuizBattle, { type QuizBattleDevHandle } from "./QuizBattle";
 import VictoryCinematic from "./VictoryCinematic";
 import { KNIGHT_ANIM_MS, type KnightPose } from "./sprites/KnightSprite";
 import { GOBLIN_ANIM_MS, GOBLIN_ATTACK_HIT_MS, SKELETON_ANIM_MS, SKELETON_ATTACK_HIT_MS, ENEMY_KNIGHT_ANIM_MS, ENEMY_KNIGHT_ATTACK_HIT_MS, MAGE_ANIM_MS, MAGE_ATTACK_SHOT_MS, KING_ANIM_MS, KING_ATTACK_HIT_MS, type EnemyPose } from "./sprites/EnemySprite";
@@ -33,7 +34,7 @@ import {
   usesSheetEnemyDeath,
 } from "./enemyKind";
 import { playKingMusic, stopCorridorMusic, stopKingMusic } from "../audio/music";
-import GearIcon from "../Components/GearIcon";
+import GearIcon from "../components/GearIcon";
 import "./Style.css";
 import "./Corridor.css";
 
@@ -76,6 +77,7 @@ const ENEMY_KNIGHT_RETREAT_MS = 1400;
 const ATTACK_MS = KNIGHT_ANIM_MS.attack;
 const ATTACK_BLAST_MS = KNIGHT_ANIM_MS.attackBlast;
 const HURT_MS = KNIGHT_ANIM_MS.hurt;
+const DEV_MODE = import.meta.env.DEV || import.meta.env.VITE_DEV_MODE === "true";
 
 function preloadImage(src: string): Promise<void> {
   return new Promise((resolve) => {
@@ -129,6 +131,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const [crownActive, setCrownActive] = useState(false);
   const [crownSceneReady, setCrownSceneReady] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [devEnviando, setDevEnviando] = useState(false);
   const [entradaLiberada, setEntradaLiberada] = useState(pronto);
   const [falaIndex, setFalaIndex] = useState(0);
   const walkTimer = useRef<number | null>(null);
@@ -146,6 +149,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const onEnemyAttackCompleteRef = useRef<(() => void) | null>(null);
   const prontoRef = useRef(pronto);
   const onSceneReadyRef = useRef(onSceneReady);
+  const quizDevRef = useRef<QuizBattleDevHandle>(null);
 
   prontoRef.current = pronto;
   onSceneReadyRef.current = onSceneReady;
@@ -674,6 +678,33 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
     }, HURT_MS);
   }
 
+  async function avancarDev() {
+    if (!batalha || animandoHit || devEnviando || fase !== "battle") return;
+
+    if (!usarPainelCodigo(batalha)) {
+      quizDevRef.current?.avancar();
+      return;
+    }
+
+    setDevEnviando(true);
+    setErro(null);
+    try {
+      const resultado = await acertarEtapaDev(batalha.id);
+      atualizarBatalha(
+        {
+          vidaJogador: resultado.vidaJogador,
+          vidaInimigo: resultado.vidaInimigo,
+          status: resultado.status,
+        },
+        resultado,
+      );
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao avançar no DEV mode.");
+    } finally {
+      setDevEnviando(false);
+    }
+  }
+
   async function aposVitoria() {
     try {
       const u = await buscarUsuario(usuario.id);
@@ -869,6 +900,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
               />
             ) : (
               <QuizBattle
+                ref={quizDevRef}
                 batalha={batalha}
                 totalPerguntas={inimigoAtual.ehRei ? 4 : inimigoAtual.vidaMaxima}
                 onAtualizarBatalha={atualizarBatalha}
@@ -878,6 +910,28 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
           </aside>
         )}
       </div>
+
+      {DEV_MODE && emBatalha && batalha && (
+        <div className="rk-dev-mode" role="group" aria-label="Controles do modo de desenvolvimento">
+          <span className="rk-dev-mode__title">DEV MODE</span>
+          <div className="rk-dev-mode__actions">
+            <button
+              type="button"
+              disabled={usarPainelCodigo(batalha)}
+              onClick={() => quizDevRef.current?.voltar()}
+            >
+              ‹ Voltar
+            </button>
+            <button
+              type="button"
+              disabled={animandoHit || devEnviando}
+              onClick={() => void avancarDev()}
+            >
+              Avançar ›
+            </button>
+          </div>
+        </div>
+      )}
 
       <footer className="rk-game-footer">
         <div className="rk-footer-block">

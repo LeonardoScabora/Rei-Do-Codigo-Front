@@ -1,10 +1,10 @@
-import type { Inimigo } from "../api";
+import type { Inimigo } from "../../api";
 import {
   isCavaleiroInimigo,
   isEsqueletoInimigo,
   isGoblinInimigo,
   isMagoInimigo,
-} from "./enemyKind";
+} from "../enemyKind";
 
 export type QuemFala = "jogador" | "inimigo";
 
@@ -13,11 +13,6 @@ export type Fala = {
   texto: string;
 };
 
-/**
- * O primeiro inimigo apresenta a missão.
- * Os guardiões do meio marcam a trajetória até o trono.
- * O Rei do Código retoma essa história antes da batalha final.
- */
 export function falasDoEncontro(inimigo: Inimigo, nomeJogador: string): Fala[] {
   if (inimigo.ehRei) return falasRei(nomeJogador);
   if (inimigo.ordemNoCorredor === 1 || isGoblinInimigo(inimigo)) return falasGoblin();
