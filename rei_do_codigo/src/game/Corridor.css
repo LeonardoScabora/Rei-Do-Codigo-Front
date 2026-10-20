@@ -475,7 +475,7 @@
 .rk-dev-mode {
   position: fixed;
   left: 18px;
-  bottom: 112px;
+  bottom: 130px;
   z-index: 12;
   display: flex;
   flex-direction: column;
