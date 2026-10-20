@@ -917,13 +917,6 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
           <div className="rk-dev-mode__actions">
             <button
               type="button"
-              disabled={usarPainelCodigo(batalha)}
-              onClick={() => quizDevRef.current?.voltar()}
-            >
-              ‹ Voltar
-            </button>
-            <button
-              type="button"
               disabled={animandoHit || devEnviando}
               onClick={() => void avancarDev()}
             >

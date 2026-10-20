@@ -479,7 +479,7 @@
   z-index: 12;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 5px;
   min-width: 190px;
   padding: 11px;
   box-sizing: border-box;
