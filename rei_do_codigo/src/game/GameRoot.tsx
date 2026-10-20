@@ -14,6 +14,7 @@ import CodeBattle from "./CodeBattle";
 import CorridorScene, { type ArenaKind, type CorridorMode, type EnemyMovePhase } from "./CorridorScene";
 import CrownTransition from "./CrownTransition";
 import DialogueBox from "./DialogueBox";
+import { falasDoEncontro } from "./dialogues";
 import GameOptionsModal from "./GameOptionsModal";
 import QuizBattle from "./QuizBattle";
 import VictoryCinematic from "./VictoryCinematic";
@@ -57,8 +58,6 @@ type Fase =
   | "victory_final"
   | "defeat";
 
-const DIALOGO_PADRAO = "Voce nunca passara por mim verme!";
-const DIALOGO_REI = "Você atravessou o Corredor Real... agora lute por sua coroa.";
 const WALK_MS = 5000;
 const EXIT_MS = WALK_MS;
 /** Distância original da entrada na arena (-38% → 14%) em 5s: velocidade do passo. */
@@ -131,6 +130,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const [crownSceneReady, setCrownSceneReady] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [entradaLiberada, setEntradaLiberada] = useState(pronto);
+  const [falaIndex, setFalaIndex] = useState(0);
   const walkTimer = useRef<number | null>(null);
   const hitTimer = useRef<number | null>(null);
   const attackEndTimer = useRef<number | null>(null);
@@ -187,6 +187,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
     }
     setFase("walking");
     walkTimer.current = window.setTimeout(() => {
+      setFalaIndex(0);
       setKnightPose("idle");
       setEnemyPose("idle");
       setFase("dialogue");
@@ -233,6 +234,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
       }
 
       walkTimer.current = window.setTimeout(() => {
+        setFalaIndex(0);
         setKnightPose("idle");
         setEnemyPose("idle");
         setFase("dialogue");
@@ -252,6 +254,7 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
       pendingCrownWalk.current = null;
       setKnightPose("walk");
       walkTimer.current = window.setTimeout(() => {
+        setFalaIndex(0);
         setKnightPose("idle");
         setEnemyPose("idle");
         setFase("dialogue");
@@ -729,6 +732,9 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
   const emBatalha = fase === "battle" && batalha;
   const painelDireito = emBatalha || fase === "enemy_fall";
   const salas = [...inimigos].sort((a, b) => a.ordemNoCorredor - b.ordemNoCorredor);
+  const falas = inimigoAtual ? falasDoEncontro(inimigoAtual, usuario.nome) : [];
+  const fala = falas[Math.min(falaIndex, Math.max(falas.length - 1, 0))];
+  const ultimaFala = falas.length === 0 || falaIndex >= falas.length - 1;
   const sequencia = Math.max(0, usuario.progresso - 1);
   const vidaAtual = batalha?.vidaJogador ?? 3;
   const enemyChargeMs = usesLongChargeMove(inimigoAtual)
@@ -817,11 +823,19 @@ export default function GameRoot({ usuarioInicial, onSair, pronto = true, onScen
             kingAttack={kingAttack}
           />
 
-          {fase === "dialogue" && inimigoAtual && (
+          {fase === "dialogue" && inimigoAtual && fala && (
             <DialogueBox
-              speaker={inimigoAtual.nome}
-              text={isReiInimigo(inimigoAtual) ? DIALOGO_REI : DIALOGO_PADRAO}
-              onContinue={() => void comecarBatalha()}
+              speaker={fala.quem === "jogador" ? usuario.nome : inimigoAtual.nome}
+              text={fala.texto}
+              quem={fala.quem}
+              ultima={ultimaFala}
+              onContinue={() => {
+                if (!ultimaFala) {
+                  setFalaIndex((atual) => atual + 1);
+                  return;
+                }
+                void comecarBatalha();
+              }}
             />
           )}
 

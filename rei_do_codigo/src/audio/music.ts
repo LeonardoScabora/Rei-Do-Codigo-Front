@@ -99,9 +99,11 @@ export function setMusicVolume(valor: number) {
   getVictoryAudio().volume = vol;
 }
 
-/** Toca a música do menu em loop. */
+/** Toca a música do menu em loop, sempre a partir do início. */
 export function playMenuMusic() {
-  tentarTocar(getMenuAudio(), "menu");
+  const audio = getMenuAudio();
+  audio.currentTime = 0;
+  tentarTocar(audio, "menu");
 }
 
 /** Pausa a música do menu. */

@@ -77,11 +77,11 @@ export default function AudioOptionsPanel() {
         value={settings.music}
         onChange={(v) => setSettings((s) => ({ ...s, music: v }))}
       />
-      <VolumeRow
+      {/* <VolumeRow
         label="Efeitos"
         value={settings.sfx}
         onChange={(v) => setSettings((s) => ({ ...s, sfx: v }))}
-      />
+      /> */}
     </>
   );
 }

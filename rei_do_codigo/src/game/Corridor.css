@@ -1715,6 +1715,19 @@
   color: var(--rk-neon-soft);
 }
 
+.rk-dialogue--jogador .rk-dialogue__panel {
+  border-color: #6a5424;
+  box-shadow: 0 0 22px rgba(232, 178, 58, 0.22);
+}
+
+.rk-dialogue--jogador .rk-dialogue__speaker {
+  color: var(--rk-gold-bright);
+}
+
+.rk-dialogue--jogador .rk-dialogue__text {
+  color: #f3e6c4;
+}
+
 .rk-dialogue__text {
   margin: 0;
   font-family: "Cinzel", serif;
