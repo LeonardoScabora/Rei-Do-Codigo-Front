@@ -1,7 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { Inimigo } from "../api";
 import CodeEnergyBlast from "./components/CodeEnergyBlast";
-import EnemyArrow from "./components/EnemyArrow";
 import MageMagic from "./components/MageMagic";
 import KnightSprite, { KNIGHT_BLAST_MS, type KnightPose } from "./sprites/KnightSprite";
 import EnemySprite, { type EnemyPose } from "./sprites/EnemySprite";
@@ -33,9 +32,6 @@ type Props = {
   compact?: boolean;
   energyBlast?: boolean;
   onEnergyBlastHit?: () => void;
-  enemyArrow?: boolean;
-  onEnemyArrowHit?: () => void;
-  arrowDurationMs?: number;
   mageMagic?: boolean;
   onMageMagicHit?: () => void;
   onMageMagicComplete?: () => void;
@@ -74,9 +70,6 @@ export default function CorridorScene({
   compact = false,
   energyBlast = false,
   onEnergyBlastHit,
-  enemyArrow = false,
-  onEnemyArrowHit,
-  arrowDurationMs = 520,
   mageMagic = false,
   onMageMagicHit,
   onMageMagicComplete,
@@ -96,7 +89,6 @@ export default function CorridorScene({
   const knightVisualRef = useRef<HTMLDivElement>(null);
   const enemySlotRef = useRef<HTMLDivElement>(null);
   const [blastPoints, setBlastPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
-  const [arrowPoints, setArrowPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(null);
   const [mageSpellPoints, setMageSpellPoints] = useState<{ from: BlastPoint; to: BlastPoint } | null>(
     null,
   );
@@ -132,7 +124,7 @@ export default function CorridorScene({
     };
   }, [measureActorBoxes]);
 
-  const measureArrowPoints = useCallback(() => {
+  const measureMageSpellPoints = useCallback(() => {
     const boxes = measureActorBoxes();
     if (!boxes) return null;
 
@@ -165,20 +157,12 @@ export default function CorridorScene({
   }, [energyBlast, measureBlastPoints]);
 
   useLayoutEffect(() => {
-    if (!enemyArrow) {
-      setArrowPoints(null);
-      return;
-    }
-    setArrowPoints(measureArrowPoints());
-  }, [enemyArrow, measureArrowPoints]);
-
-  useLayoutEffect(() => {
     if (!mageMagic) {
       setMageSpellPoints(null);
       return;
     }
-    setMageSpellPoints(measureArrowPoints());
-  }, [mageMagic, measureArrowPoints]);
+    setMageSpellPoints(measureMageSpellPoints());
+  }, [mageMagic, measureMageSpellPoints]);
 
   useLayoutEffect(() => {
     if (!enemyVisible || !inimigo) {
@@ -340,15 +324,6 @@ export default function CorridorScene({
             to={blastPoints.to}
             durationMs={KNIGHT_BLAST_MS}
             onHit={onEnergyBlastHit}
-          />
-        )}
-
-        {enemyArrow && arrowPoints && (
-          <EnemyArrow
-            from={arrowPoints.from}
-            to={arrowPoints.to}
-            durationMs={arrowDurationMs}
-            onHit={onEnemyArrowHit}
           />
         )}
 

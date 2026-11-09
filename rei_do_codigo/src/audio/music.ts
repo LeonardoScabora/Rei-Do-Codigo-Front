@@ -1,7 +1,7 @@
-import calmaUrl from "../assets/Calma.mp3";
-import corridorUrl from "../assets/FallenComrade.mp3";
-import kingUrl from "../assets/KingBattle.mp3";
-import victoryUrl from "../assets/VictoryCeremony.mp3";
+import calmaUrl from "../../src/audio/Calma.mp3";
+import corridorUrl from "../../src/audio/FallenComrade.mp3";
+import kingUrl from "../../src/audio/KingBattle.mp3";
+import victoryUrl from "../../src/audio/VictoryCeremony.mp3";
 
 const SETTINGS_KEY = "rk_audio_settings";
 const VOLUME_PADRAO = 70;
@@ -99,9 +99,11 @@ export function setMusicVolume(valor: number) {
   getVictoryAudio().volume = vol;
 }
 
-/** Toca a música do menu em loop. */
+/** Toca a música do menu em loop, sempre a partir do início. */
 export function playMenuMusic() {
-  tentarTocar(getMenuAudio(), "menu");
+  const audio = getMenuAudio();
+  audio.currentTime = 0;
+  tentarTocar(audio, "menu");
 }
 
 /** Pausa a música do menu. */

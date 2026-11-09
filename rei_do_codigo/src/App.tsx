@@ -9,7 +9,7 @@ import {
   stopKingMusic,
   stopVictoryMusic,
 } from "./audio/music";
-import { MatrixRain } from "./Components/MatrixRain";
+import { MatrixRain } from "./components/MatrixRain";
 import CrownTransition from "./game/CrownTransition";
 import GameRoot from "./game/GameRoot";
 import "./game/Style.css";

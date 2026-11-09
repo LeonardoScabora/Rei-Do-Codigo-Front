@@ -69,6 +69,12 @@ export function responderPergunta(
   });
 }
 
+export function acertarEtapaDev(batalhaId: number) {
+  return apiFetch<ResultadoAcao>(`/api/batalhas/${batalhaId}/dev/acertar`, {
+    method: "POST",
+  });
+}
+
 export function obterDesafio(batalhaId: number) {
   return apiFetch<DesafioCodigo>(`/api/batalhas/${batalhaId}/desafio`);
 }
