@@ -19,6 +19,7 @@ export function falasDoEncontro(inimigo: Inimigo, nomeJogador: string): Fala[] {
   if (isEsqueletoInimigo(inimigo)) return falasEsqueleto();
   if (isCavaleiroInimigo(inimigo)) return falasCavaleiro();
   if (isMagoInimigo(inimigo)) return falasMago();
+  return [];
 }
 
 function falasGoblin(): Fala[] {

@@ -175,7 +175,7 @@ export default function CorridorScene({
     const actors = actorsRef.current;
     const observer =
       actors && typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateMeleeStand) : null;
-    observer?.observe(actors);
+    if (actors) observer?.observe(actors);
     window.addEventListener("resize", updateMeleeStand);
 
     return () => {
